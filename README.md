@@ -1,66 +1,23 @@
-## Foundry
+## EmissionDataProvider
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+This contract aims to give a simple way to track emissions of a given ERC20 token over a rewards program on top of Morpho Blue.
 
-Foundry consists of:
+Rewards emissions are organized under the following structure:
+- Rewards Program ID: this is an unique identifier for a given rewards program managed by a DAO for example. 
+- Token: The token address that is being rewarded in the program. You can have multiple tokens per program.
+- market: The market id that is being rewarded in the program. You can have multiple markets per program.
+- RewardsEmission: The rewards struct containing the emission rate of rewards, the start date and the end date. 
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
 
-## Documentation
+## Specs
 
-https://book.getfoundry.sh/
+- The owner should be able to update the rewards emission rate for a given program, token and market.
+- The start date can be only in the future. 
+- The end date is optional and can be updated later.
 
-## Usage
 
-### Build
+Problem: how to handle the case where the owner wants to update the start date of a rewards emission that has already started?
+Problem: how to handle the case where we want to push the next rate in the future, without overriding the current one?
 
-```shell
-$ forge build
-```
-
-### Test
-
-```shell
-$ forge test
-```
-
-### Format
-
-```shell
-$ forge fmt
-```
-
-### Gas Snapshots
-
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+Solution: use a round based system. Each time the owner updates the rewards emission, a new round is created.
+The owner can update the start date of future round, the end date of the current one, and push new rounds in the future.
