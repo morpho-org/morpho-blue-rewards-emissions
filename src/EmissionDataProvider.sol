@@ -39,5 +39,12 @@ contract EmissionDataProvider is Ownable {
         }
     }
 
+    function addStopDate(uint256 id, address token, bytes32 market, uint256 stopDate) public onlyOwner {
+        require(stopDate > block.timestamp, "EmissionDataProvider: stopDate must be greater than current timestamp");
+        require(rewardsEmissions[id][token][market].startAt > 0, "EmissionDataProvider: emission not found");
+
+        rewardsEmissions[id][token][market].endAt = stopDate;
+    }
+
 
 }
