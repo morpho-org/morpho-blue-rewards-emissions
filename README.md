@@ -1,16 +1,30 @@
-## EmissionDataProvider
+## EmissionDataProvider Contract
 
-This contract aims to give a simple way to track emissions of a given ERC20 token over a rewards program on top of Morpho Blue.
+### Overview
+The `EmissionDataProvider` contract provides a streamlined method for tracking emissions of a specific ERC20 token within a rewards program operated on Morpho Blue. It allows users to set emission rates for various rewards tokens in different markets.
 
-Rewards emissions are organized under the following structure:
-- `Token`: The token address that is being rewarded in the program. You can have multiple tokens per program.
-- `Market`: The market id that is being rewarded in the program. You can have multiple markets per program.
-- `RewardsEmission`: The rewards struct containing the emission rate of rewards for each side of a Morpho market (supply, borrow, collateral). 
+### Key Features
+- **Rate Setting**: Any user can set a rate for a particular rewards token and market. Rates must be linked to a Universal Rewards Distributor (URD) for the distribution of rewards.
+- **Trust Factor**: As rate setting is open to all, it's crucial for users to assess the credibility of the rate setter.
+- **Rewards Structure**: Rates are indicative of potential rewards. The actual distribution is handled by the `UniversalRewardsDistributor` contract during each update cycle, contingent on the trustworthiness of the rewards curator.
 
+### Rewards Emissions Structure
+- **Sender**: Address defining the rate. Can be any user.
+- **URD (Universal Rewards Distributor)**: Address for distributing rewards. Can be any URD.
+- **RewardToken**: The ERC20 token address used for rewards.
+- **MarketId**: Identifier of the market in which rewards are being offered.
+- **RewardsEmission**: A structure containing the emission rates for each aspect of a Morpho market (supply, borrow, collateral). 
 
-## Specs
+### Rates
+Rates are defined per year.
 
-- The owner should be able to update the rewards emission rate for a given token and market.
-- The rate is valid at the block timestamp of the rate update. 
-- To stop a rewards distribution, the owner should set the rate to 0.
-- we are not checking if the market exists on blue. It is up to the owner to well configure the distributions.
+### Specifications
+- **Discontinuing a Rate**: To cease a rate, set it to 0. This action immediately invalidates the previous rate.
+- **Validity and Trust**: Rates are effective immediately after an update. However, the contract is not trustless. It is a trust-minimized system, relying on the rewards distributor's commitment to distribute the rewards at each update.
+- **Transparency and Scalability**: This contract enhances transparency and scalability in the rewards distribution process, supported by distribution and reader scripts provided by the Morpho Association.
+
+### Additional Resources
+- [Rewards Distribution Script](#) *(Link to be added)*
+
+### Note
+The information provided in this document is subject to change. Users should exercise due diligence and understand the inherent risks involved.
