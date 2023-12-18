@@ -11,13 +11,20 @@ struct RewardsEmission {
 
 contract EmissionDataProvider is Multicall {
     /// @notice reward token -> market -> RewardsEmission mapping
-    mapping(address sender => mapping(address urd => mapping(address rewardToken => mapping(bytes32 marketId => RewardsEmission)))) public rewardsEmissions;
+    mapping(
+        address sender
+            => mapping(address urd => mapping(address rewardToken => mapping(bytes32 marketId => RewardsEmission)))
+    ) public rewardsEmissions;
 
+    event RewardsEmissionSet(
+        address indexed rewardToken,
+        bytes32 indexed market,
+        address indexed sender,
+        address urd,
+        RewardsEmission rewardsEmission
+    );
 
-    event RewardsEmissionSet(address indexed rewardToken, bytes32 indexed market, address indexed sender, address urd, RewardsEmission rewardsEmission);
-
-    constructor() Multicall() {
-    }
+    constructor() {}
 
     function setRewardsEmission(address token, address urd, bytes32 market, RewardsEmission calldata rewardsEmission)
         public
