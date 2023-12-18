@@ -2,6 +2,7 @@
 pragma solidity 0.8.21;
 
 import {Multicall} from "openzeppelin/utils/Multicall.sol";
+import {Id} from "morpho-blue/interfaces/IMorpho.sol";
 
 struct RewardsEmission {
     uint256 supplyRatePerYear;
@@ -13,12 +14,12 @@ contract EmissionDataProvider is Multicall {
     /// @notice reward token -> market -> RewardsEmission mapping
     mapping(
         address sender
-            => mapping(address urd => mapping(address rewardToken => mapping(bytes32 marketId => RewardsEmission)))
+            => mapping(address urd => mapping(address rewardToken => mapping(Id marketId => RewardsEmission)))
     ) public rewardsEmissions;
 
     event RewardsEmissionSet(
         address indexed rewardToken,
-        bytes32 indexed market,
+        Id indexed market,
         address indexed sender,
         address urd,
         RewardsEmission rewardsEmission
@@ -26,7 +27,7 @@ contract EmissionDataProvider is Multicall {
 
     constructor() {}
 
-    function setRewardsEmission(address token, address urd, bytes32 market, RewardsEmission calldata rewardsEmission)
+    function setRewardsEmission(address token, address urd, Id market, RewardsEmission calldata rewardsEmission)
         public
     {
         rewardsEmissions[msg.sender][urd][token][market] = rewardsEmission;
