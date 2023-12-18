@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.21;
 
-import {Ownable} from "openzeppelin/access/Ownable.sol";
 import {Multicall} from "openzeppelin/utils/Multicall.sol";
 
 struct RewardsEmission {
@@ -10,24 +9,21 @@ struct RewardsEmission {
     uint256 collateralRatePerYear;
 }
 
-contract EmissionDataProvider is Ownable, Multicall {
+contract EmissionDataProvider is Multicall {
     /// @notice reward token -> market -> RewardsEmission mapping
-    mapping(address => mapping(bytes32 => RewardsEmission)) public rewardsEmissions;
+    mapping(address sender => mapping(address urd => mapping(address rewardToken => mapping(bytes32 marketId => RewardsEmission)))) public rewardsEmissions;
 
-    address public immutable REWARDS_DISTRIBUTOR;
 
-    event RewardsEmissionSet(address indexed token, bytes32 indexed market, RewardsEmission rewardsEmission);
+    event RewardsEmissionSet(address indexed rewardToken, bytes32 indexed market, address indexed sender, address urd, RewardsEmission rewardsEmission);
 
-    constructor(address rewardsDistributor, address initialOwner) Ownable(initialOwner) Multicall() {
-        REWARDS_DISTRIBUTOR = rewardsDistributor;
+    constructor() Multicall() {
     }
 
-    function setRewardsEmission(address token, bytes32 market, RewardsEmission calldata rewardsEmission)
+    function setRewardsEmission(address token, address urd, bytes32 market, RewardsEmission calldata rewardsEmission)
         public
-        onlyOwner
     {
-        rewardsEmissions[token][market] = rewardsEmission;
+        rewardsEmissions[msg.sender][urd][token][market] = rewardsEmission;
 
-        emit RewardsEmissionSet(token, market, rewardsEmission);
+        emit RewardsEmissionSet(token, market, msg.sender, urd, rewardsEmission);
     }
 }
