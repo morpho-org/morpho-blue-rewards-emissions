@@ -25,8 +25,6 @@ contract EmissionDataProvider is Multicall {
         RewardsEmission rewardsEmission
     );
 
-    constructor() {}
-
     function setRewardsEmission(address token, address urd, Id market, RewardsEmission calldata rewardsEmission)
         public
     {
