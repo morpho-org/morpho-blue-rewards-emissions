@@ -1,2 +1,3 @@
 openzeppelin/=lib/openzeppelin-contracts/contracts/
 morpho-blue/=lib/morpho-blue/src/
+forge-std/=lib/forge-std/src/
