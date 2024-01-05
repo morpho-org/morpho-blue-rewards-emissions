@@ -33,12 +33,12 @@ contract EmissionDataProviderTest is Test {
         vm.prank(caller);
         dataProvider.setRewardsEmission(token, urd, market, emission);
 
-        (uint256 supplyRatePerYear, uint256 borrowRatePerYear, uint256 collateralRatePerYear) =
+        (uint256 supplyRewardTokensPerYear, uint256 borrowRewardTokensPerYear, uint256 collateralRewardTokensPerYear) =
             dataProvider.rewardsEmissions(caller, urd, token, market);
 
-        assertEq(emission.supplyRatePerYear, supplyRatePerYear);
-        assertEq(emission.borrowRatePerYear, borrowRatePerYear);
-        assertEq(emission.collateralRatePerYear, collateralRatePerYear);
+        assertEq(emission.supplyRewardTokensPerYear, supplyRewardTokensPerYear);
+        assertEq(emission.borrowRewardTokensPerYear, borrowRewardTokensPerYear);
+        assertEq(emission.collateralRewardTokensPerYear, collateralRewardTokensPerYear);
     }
 
     function testMulticall() public {
@@ -63,20 +63,20 @@ contract EmissionDataProviderTest is Test {
 
         dataProvider.multicall(data);
 
-        (uint256 supplyRatePerYear0, uint256 borrowRatePerYear0, uint256 collateralRatePerYear0) =
-            dataProvider.rewardsEmissions(address(this), address(0), address(0), Id.wrap(bytes32(uint256(1))));
-        (uint256 supplyRatePerYear1, uint256 borrowRatePerYear1, uint256 collateralRatePerYear1) =
-            dataProvider.rewardsEmissions(address(this), address(1), address(1), Id.wrap(bytes32(uint256(2))));
-        (uint256 supplyRatePerYear2, uint256 borrowRatePerYear2, uint256 collateralRatePerYear2) =
-            dataProvider.rewardsEmissions(address(this), address(2), address(2), Id.wrap(bytes32(uint256(3))));
-        assertEq(supplyRatePerYear0, 1);
-        assertEq(borrowRatePerYear0, 1);
-        assertEq(collateralRatePerYear0, 1);
-        assertEq(supplyRatePerYear1, 2);
-        assertEq(borrowRatePerYear1, 2);
-        assertEq(collateralRatePerYear1, 2);
-        assertEq(supplyRatePerYear2, 3);
-        assertEq(borrowRatePerYear2, 3);
-        assertEq(collateralRatePerYear2, 3);
+        (uint256 supplyRewardTokensPerYear0, uint256 borrowRewardTokensPerYear0, uint256 collateralRewardTokensPerYear0)
+        = dataProvider.rewardsEmissions(address(this), address(0), address(0), Id.wrap(bytes32(uint256(1))));
+        (uint256 supplyRewardTokensPerYear1, uint256 borrowRewardTokensPerYear1, uint256 collateralRewardTokensPerYear1)
+        = dataProvider.rewardsEmissions(address(this), address(1), address(1), Id.wrap(bytes32(uint256(2))));
+        (uint256 supplyRewardTokensPerYear2, uint256 borrowRewardTokensPerYear2, uint256 collateralRewardTokensPerYear2)
+        = dataProvider.rewardsEmissions(address(this), address(2), address(2), Id.wrap(bytes32(uint256(3))));
+        assertEq(supplyRewardTokensPerYear0, 1);
+        assertEq(borrowRewardTokensPerYear0, 1);
+        assertEq(collateralRewardTokensPerYear0, 1);
+        assertEq(supplyRewardTokensPerYear1, 2);
+        assertEq(borrowRewardTokensPerYear1, 2);
+        assertEq(collateralRewardTokensPerYear1, 2);
+        assertEq(supplyRewardTokensPerYear2, 3);
+        assertEq(borrowRewardTokensPerYear2, 3);
+        assertEq(collateralRewardTokensPerYear2, 3);
     }
 }

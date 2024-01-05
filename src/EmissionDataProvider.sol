@@ -6,12 +6,12 @@ import {Id} from "morpho-blue/interfaces/IMorpho.sol";
 import {Multicall} from "openzeppelin/utils/Multicall.sol";
 
 struct RewardsEmission {
-    /// @notice The rewards rate per year for the supply side.
-    uint256 supplyRatePerYear;
-    /// @notice The rewards rate per year for the borrow side.
-    uint256 borrowRatePerYear;
-    /// @notice The rewards rate per year for the collateral side.
-    uint256 collateralRatePerYear;
+    /// @notice The number of reward tokens distributed per year on the supply side (in the reward token decimals).
+    uint256 supplyRewardTokensPerYear;
+    /// @notice The number of reward tokens distributed per year on the borrow side (in the reward token decimals).
+    uint256 borrowRewardTokensPerYear;
+    /// @notice The number of reward tokens distributed per year on the collateral side (in the reward token decimals).
+    uint256 collateralRewardTokensPerYear;
 }
 
 contract EmissionDataProvider is Multicall {
