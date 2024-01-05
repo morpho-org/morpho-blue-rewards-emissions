@@ -38,7 +38,7 @@ Rates are defined per year.
 
 ### License
 
-EmissionDataProvider is licensed under GPL-2.0-or-later, see [LICENSE](https://github.com/morpho-org/morpho-blue-rewards-emissions/blob/main/LICENSE).
+EmissionDataProvider is licensed under MIT, see [LICENSE](https://github.com/morpho-org/morpho-blue-rewards-emissions/blob/main/LICENSE).
 
 ### Note
 
