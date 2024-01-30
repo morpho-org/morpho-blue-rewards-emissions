@@ -20,7 +20,7 @@ struct RewardsEmission {
 }
 
 contract EmissionDataProvider is Multicall {
-    /// @notice Returns the rewards emission. rewardEmissionId -> rewardsEmission.
+    /// @notice Returns the rewards emission for the given rewardEmissionId.
     /// Where rewardEmissionId = keccak256(abi.encode(msg.sender, urd, rewardToken, market)).
     mapping(bytes32 rewardEmissionId => RewardsEmission) public rewardsEmissions;
 
