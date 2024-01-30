@@ -139,7 +139,7 @@ contract EmissionDataProviderTest is Test {
             uint256 startTimestamp0,
             uint256 endTimestamp0
         ) = dataProvider.rewardsEmissions(
-            computeRewardEmissionId(address(this), address(0), address(0), Id.wrap(bytes32(uint256(1))))
+            computeRewardsEmissionId(address(this), address(0), address(0), Id.wrap(bytes32(uint256(1))))
         );
         (
             uint256 supplyRewardTokensPerYear1,
@@ -148,7 +148,7 @@ contract EmissionDataProviderTest is Test {
             uint256 startTimestamp1,
             uint256 endTimestamp1
         ) = dataProvider.rewardsEmissions(
-            computeRewardEmissionId(address(this), address(1), address(1), Id.wrap(bytes32(uint256(2))))
+            computeRewardsEmissionId(address(this), address(1), address(1), Id.wrap(bytes32(uint256(2))))
         );
         (
             uint256 supplyRewardTokensPerYear2,
@@ -157,7 +157,7 @@ contract EmissionDataProviderTest is Test {
             uint256 startTimestamp2,
             uint256 endTimestamp2
         ) = dataProvider.rewardsEmissions(
-            computeRewardEmissionId(address(this), address(2), address(2), Id.wrap(bytes32(uint256(3))))
+            computeRewardsEmissionId(address(this), address(2), address(2), Id.wrap(bytes32(uint256(3))))
         );
         assertEq(supplyRewardTokensPerYear0, 1);
         assertEq(borrowRewardTokensPerYear0, 1);
@@ -176,7 +176,7 @@ contract EmissionDataProviderTest is Test {
         assertEq(endTimestamp2, block.timestamp + 3);
     }
 
-    function computeRewardEmissionId(address caller, address urd, address token, Id market)
+    function computeRewardsEmissionId(address caller, address urd, address token, Id market)
         public
         pure
         returns (bytes32)

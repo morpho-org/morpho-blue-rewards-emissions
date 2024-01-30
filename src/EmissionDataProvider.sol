@@ -20,9 +20,9 @@ struct RewardsEmission {
 }
 
 contract EmissionDataProvider is Multicall {
-    /// @notice Returns the rewards emission for the given rewardEmissionId.
-    /// Where rewardEmissionId = keccak256(abi.encode(msg.sender, urd, rewardToken, market)).
-    mapping(bytes32 rewardEmissionId => RewardsEmission) public rewardsEmissions;
+    /// @notice Returns the rewards emission for the given rewardsEmissionId.
+    /// Where rewardsEmissionId = keccak256(abi.encode(msg.sender, urd, rewardToken, market)).
+    mapping(bytes32 rewardsEmissionId => RewardsEmission) public rewardsEmissions;
 
     /// @notice Emitted when the rewards emission is set.
     event RewardsEmissionSet(
@@ -41,15 +41,15 @@ contract EmissionDataProvider is Multicall {
     function setRewardsEmission(address rewardToken, address urd, Id market, RewardsEmission calldata rewardsEmission)
         public
     {
-        bytes32 rewardEmissionId = keccak256(abi.encode(msg.sender, urd, rewardToken, market));
+        bytes32 rewardsEmissionId = keccak256(abi.encode(msg.sender, urd, rewardToken, market));
 
         require(rewardsEmission.startTimestamp >= block.timestamp, ErrorsLib.START_TIMESTAMP_IN_THE_PAST);
 
         require(rewardsEmission.endTimestamp > rewardsEmission.startTimestamp, ErrorsLib.END_TIMESTAMP_TOO_EARLY);
 
-        require(rewardsEmissions[rewardEmissionId].startTimestamp == 0, ErrorsLib.REWARDS_EMISSION_ALREADY_SET);
+        require(rewardsEmissions[rewardsEmissionId].startTimestamp == 0, ErrorsLib.REWARDS_EMISSION_ALREADY_SET);
 
-        rewardsEmissions[rewardEmissionId] = rewardsEmission;
+        rewardsEmissions[rewardsEmissionId] = rewardsEmission;
 
         emit RewardsEmissionSet(rewardToken, market, msg.sender, urd, rewardsEmission);
     }
