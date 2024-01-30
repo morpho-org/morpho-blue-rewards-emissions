@@ -2,7 +2,6 @@
 pragma solidity 0.8.21;
 
 import {Id} from "morpho-blue/interfaces/IMorpho.sol";
-import {ErrorsLib} from "./libraries/ErrorsLib.sol";
 
 import {Multicall} from "openzeppelin/utils/Multicall.sol";
 
@@ -13,16 +12,14 @@ struct RewardsEmission {
     uint256 borrowRewardTokensPerYear;
     /// @notice The number of reward tokens distributed per year on the collateral side (in the reward token decimals).
     uint256 collateralRewardTokensPerYear;
-    /// @notice The timestamp at which the reward emission starts.
-    uint256 startTimestamp;
-    /// @notice The timestamp at which the reward emission ends.
-    uint256 endTimestamp;
 }
 
 contract EmissionDataProvider is Multicall {
-    /// @notice Returns the rewards emission for the given rewardsEmissionId.
-    /// Where rewardsEmissionId = keccak256(abi.encode(msg.sender, urd, rewardToken, market)).
-    mapping(bytes32 rewardsEmissionId => RewardsEmission) public rewardsEmissions;
+    /// @notice Returns the rewards emission. sender -> urd -> token -> market -> rewardsEmission.
+    mapping(
+        address sender
+            => mapping(address urd => mapping(address rewardToken => mapping(Id marketId => RewardsEmission)))
+    ) public rewardsEmissions;
 
     /// @notice Emitted when the rewards emission is set.
     event RewardsEmissionSet(
@@ -41,15 +38,7 @@ contract EmissionDataProvider is Multicall {
     function setRewardsEmission(address rewardToken, address urd, Id market, RewardsEmission calldata rewardsEmission)
         public
     {
-        bytes32 rewardsEmissionId = keccak256(abi.encode(msg.sender, urd, rewardToken, market));
-
-        require(rewardsEmission.startTimestamp >= block.timestamp, ErrorsLib.START_TIMESTAMP_IN_THE_PAST);
-
-        require(rewardsEmission.endTimestamp > rewardsEmission.startTimestamp, ErrorsLib.END_TIMESTAMP_TOO_EARLY);
-
-        require(rewardsEmissions[rewardsEmissionId].startTimestamp == 0, ErrorsLib.REWARDS_EMISSION_ALREADY_SET);
-
-        rewardsEmissions[rewardsEmissionId] = rewardsEmission;
+        rewardsEmissions[msg.sender][urd][rewardToken][market] = rewardsEmission;
 
         emit RewardsEmissionSet(rewardToken, market, msg.sender, urd, rewardsEmission);
     }
