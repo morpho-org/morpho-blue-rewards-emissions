@@ -68,7 +68,7 @@ contract TimedEmissionDataProvider is Multicall {
     /// @param urd The URD that should redistribute the rewards.
     /// @param rewardToken The reward token of the emission.
     /// @param market The id of market on which rewards are distributed.
-    function getTimedRewardsEmission(address caller, address urd, address rewardToken, Id market)
+    function getTimedRewardsEmissions(address caller, address urd, address rewardToken, Id market)
         public
         view
         returns (TimedRewardsEmission memory)

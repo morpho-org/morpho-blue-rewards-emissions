@@ -36,19 +36,13 @@ contract TimedEmissionDataProviderTest is Test {
         vm.prank(caller);
         dataProvider.setTimedRewardsEmission(urd, token, market, emission);
 
-        (
-            uint256 supplyRewardTokensPerYear,
-            uint256 borrowRewardTokensPerYear,
-            uint256 collateralRewardTokensPerYear,
-            uint256 startTimestamp,
-            uint256 endTimestamp
-        ) = dataProvider.timedRewardsEmissions(computeTimedRewardsEmissionId(caller, urd, token, market));
+        TimedRewardsEmission memory createdEmission = dataProvider.getTimedRewardsEmissions(caller, urd, token, market);
 
-        assertEq(emission.supplyRewardTokensPerYear, supplyRewardTokensPerYear);
-        assertEq(emission.borrowRewardTokensPerYear, borrowRewardTokensPerYear);
-        assertEq(emission.collateralRewardTokensPerYear, collateralRewardTokensPerYear);
-        assertEq(emission.startTimestamp, startTimestamp);
-        assertEq(emission.endTimestamp, endTimestamp);
+        assertEq(emission.supplyRewardTokensPerYear, createdEmission.supplyRewardTokensPerYear);
+        assertEq(emission.borrowRewardTokensPerYear, createdEmission.borrowRewardTokensPerYear);
+        assertEq(emission.collateralRewardTokensPerYear, createdEmission.collateralRewardTokensPerYear);
+        assertEq(emission.startTimestamp, createdEmission.startTimestamp);
+        assertEq(emission.endTimestamp, createdEmission.endTimestamp);
     }
 
     function testSetTimedRewardsEmissionShouldRevertWhenStartTimestampIsInThePast(
@@ -60,7 +54,7 @@ contract TimedEmissionDataProviderTest is Test {
         vm.assume(emission.endTimestamp > emission.startTimestamp);
 
         vm.prank(caller);
-        vm.expectRevert(bytes(ErrorsLib.START_TIMESTAMP_IN_THE_PAST));
+        vm.expectRevert(bytes(ErrorsLib.START_TIMESTAMP_OUTDATED));
         dataProvider.setTimedRewardsEmission(address(0), address(0), Id.wrap(bytes32(uint256(0))), emission);
     }
 
@@ -73,11 +67,11 @@ contract TimedEmissionDataProviderTest is Test {
         vm.assume(emission.endTimestamp < emission.startTimestamp);
 
         vm.prank(caller);
-        vm.expectRevert(bytes(ErrorsLib.END_TIMESTAMP_TOO_EARLY));
+        vm.expectRevert(bytes(ErrorsLib.END_TIMESTAMP_INVALID));
         dataProvider.setTimedRewardsEmission(address(0), address(0), Id.wrap(bytes32(uint256(0))), emission);
     }
 
-    function testSetRewardsShouldRevertWhenSameCallerWantsToUpdateTheSameEmission(
+    function testSetRewardsShouldRevertWhenSameCallerWantsToUpdateAlreadySetEmission(
         address caller,
         address token,
         address urd,
@@ -90,9 +84,12 @@ contract TimedEmissionDataProviderTest is Test {
         vm.prank(caller);
         dataProvider.setTimedRewardsEmission(urd, token, market, emission);
 
+        TimedRewardsEmission memory newEmission =
+            TimedRewardsEmission(1, 1, 1, block.timestamp + 1, block.timestamp + 2);
+
         vm.prank(caller);
         vm.expectRevert(bytes(ErrorsLib.REWARDS_EMISSION_ALREADY_SET));
-        dataProvider.setTimedRewardsEmission(urd, token, market, emission);
+        dataProvider.setTimedRewardsEmission(urd, token, market, newEmission);
     }
 
     function testMulticall() public {
@@ -132,55 +129,27 @@ contract TimedEmissionDataProviderTest is Test {
 
         dataProvider.multicall(data);
 
-        (
-            uint256 supplyRewardTokensPerYear0,
-            uint256 borrowRewardTokensPerYear0,
-            uint256 collateralRewardTokensPerYear0,
-            uint256 startTimestamp0,
-            uint256 endTimestamp0
-        ) = dataProvider.timedRewardsEmissions(
-            computeTimedRewardsEmissionId(address(this), address(0), address(0), Id.wrap(bytes32(uint256(1))))
-        );
-        (
-            uint256 supplyRewardTokensPerYear1,
-            uint256 borrowRewardTokensPerYear1,
-            uint256 collateralRewardTokensPerYear1,
-            uint256 startTimestamp1,
-            uint256 endTimestamp1
-        ) = dataProvider.timedRewardsEmissions(
-            computeTimedRewardsEmissionId(address(this), address(1), address(1), Id.wrap(bytes32(uint256(2))))
-        );
-        (
-            uint256 supplyRewardTokensPerYear2,
-            uint256 borrowRewardTokensPerYear2,
-            uint256 collateralRewardTokensPerYear2,
-            uint256 startTimestamp2,
-            uint256 endTimestamp2
-        ) = dataProvider.timedRewardsEmissions(
-            computeTimedRewardsEmissionId(address(this), address(2), address(2), Id.wrap(bytes32(uint256(3))))
-        );
-        assertEq(supplyRewardTokensPerYear0, 1);
-        assertEq(borrowRewardTokensPerYear0, 1);
-        assertEq(collateralRewardTokensPerYear0, 1);
-        assertEq(startTimestamp0, block.timestamp);
-        assertEq(endTimestamp0, block.timestamp + 1);
-        assertEq(supplyRewardTokensPerYear1, 2);
-        assertEq(borrowRewardTokensPerYear1, 2);
-        assertEq(collateralRewardTokensPerYear1, 2);
-        assertEq(startTimestamp1, block.timestamp + 1);
-        assertEq(endTimestamp1, block.timestamp + 2);
-        assertEq(supplyRewardTokensPerYear2, 3);
-        assertEq(borrowRewardTokensPerYear2, 3);
-        assertEq(collateralRewardTokensPerYear2, 3);
-        assertEq(startTimestamp2, block.timestamp + 2);
-        assertEq(endTimestamp2, block.timestamp + 3);
-    }
+        TimedRewardsEmission memory createdEmission0 =
+            dataProvider.getTimedRewardsEmissions(address(this), address(0), address(0), Id.wrap(bytes32(uint256(1))));
+        TimedRewardsEmission memory createdEmission1 =
+            dataProvider.getTimedRewardsEmissions(address(this), address(1), address(1), Id.wrap(bytes32(uint256(2))));
+        TimedRewardsEmission memory createdEmission2 =
+            dataProvider.getTimedRewardsEmissions(address(this), address(2), address(2), Id.wrap(bytes32(uint256(3))));
 
-    function computeTimedRewardsEmissionId(address caller, address urd, address token, Id market)
-        public
-        pure
-        returns (bytes32)
-    {
-        return keccak256(abi.encode(caller, urd, token, market));
+        assertEq(createdEmission0.supplyRewardTokensPerYear, 1);
+        assertEq(createdEmission0.borrowRewardTokensPerYear, 1);
+        assertEq(createdEmission0.collateralRewardTokensPerYear, 1);
+        assertEq(createdEmission0.startTimestamp, block.timestamp);
+        assertEq(createdEmission0.endTimestamp, block.timestamp + 1);
+        assertEq(createdEmission1.supplyRewardTokensPerYear, 2);
+        assertEq(createdEmission1.borrowRewardTokensPerYear, 2);
+        assertEq(createdEmission1.collateralRewardTokensPerYear, 2);
+        assertEq(createdEmission1.startTimestamp, block.timestamp + 1);
+        assertEq(createdEmission1.endTimestamp, block.timestamp + 2);
+        assertEq(createdEmission2.supplyRewardTokensPerYear, 3);
+        assertEq(createdEmission2.borrowRewardTokensPerYear, 3);
+        assertEq(createdEmission2.collateralRewardTokensPerYear, 3);
+        assertEq(createdEmission2.startTimestamp, block.timestamp + 2);
+        assertEq(createdEmission2.endTimestamp, block.timestamp + 3);
     }
 }
