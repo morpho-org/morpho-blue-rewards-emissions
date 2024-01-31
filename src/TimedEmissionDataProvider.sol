@@ -35,7 +35,7 @@ contract TimedEmissionDataProvider is Multicall {
     );
 
     /// @notice Sets the time-bounded rewards emission.
-    /// @param urd The URD distributing the rewards.
+    /// @param urd The URD that should redistribute the rewards.
     /// @param rewardToken The reward token of the emission.
     /// @param market The id of market on which rewards are distributed.
     /// @param timedRewardsEmission The time-bounded rewards emission to set.
