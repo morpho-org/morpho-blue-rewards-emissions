@@ -21,9 +21,9 @@ struct TimedRewardsEmission {
 }
 
 contract TimedEmissionDataProvider is Multicall {
-    /// @notice Returns the time-bounded rewards emission for the given timedRewardsEmissionsId.
-    /// Where timedRewardsEmissionsId = keccak256(abi.encode(msg.sender, urd, rewardToken, market)).
-    mapping(bytes32 timedRewardsEmissionsId => TimedRewardsEmission) public timedRewardsEmissions;
+    /// @notice Returns the time-bounded rewards emission for the given timedRewardsEmissionId.
+    /// Where timedRewardsEmissionId = keccak256(abi.encode(msg.sender, urd, rewardToken, market)).
+    mapping(bytes32 timedRewardsEmissionId => TimedRewardsEmission) public timedRewardsEmissions;
 
     /// @notice Emitted when the timed rewards emission is set.
     event TimedRewardsEmissionSet(
@@ -35,13 +35,13 @@ contract TimedEmissionDataProvider is Multicall {
     );
 
     /// @notice Sets the time-bounded rewards emission.
-    /// @param rewardToken The reward token of the emission.
     /// @param urd The URD distributing the rewards.
+    /// @param rewardToken The reward token of the emission.
     /// @param market The id of market on which rewards are distributed.
     /// @param timedRewardsEmission The time-bounded rewards emission to set.
     function setTimedRewardsEmission(
-        address rewardToken,
         address urd,
+        address rewardToken,
         Id market,
         TimedRewardsEmission calldata timedRewardsEmission
     ) public {

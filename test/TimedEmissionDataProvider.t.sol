@@ -23,8 +23,8 @@ contract TimedEmissionDataProviderTest is Test {
 
     function testSetTimedRewardsEmission(
         address caller,
-        address token,
         address urd,
+        address token,
         Id market,
         TimedRewardsEmission calldata emission
     ) public {
@@ -34,7 +34,7 @@ contract TimedEmissionDataProviderTest is Test {
         vm.expectEmit();
         emit TimedRewardsEmissionSet(token, market, caller, urd, emission);
         vm.prank(caller);
-        dataProvider.setTimedRewardsEmission(token, urd, market, emission);
+        dataProvider.setTimedRewardsEmission(urd, token, market, emission);
 
         (
             uint256 supplyRewardTokensPerYear,
@@ -42,7 +42,7 @@ contract TimedEmissionDataProviderTest is Test {
             uint256 collateralRewardTokensPerYear,
             uint256 startTimestamp,
             uint256 endTimestamp
-        ) = dataProvider.timedRewardsEmissions(keccak256(abi.encode(caller, urd, token, market)));
+        ) = dataProvider.timedRewardsEmissions(computeTimedRewardsEmissionId(caller, urd, token, market));
 
         assertEq(emission.supplyRewardTokensPerYear, supplyRewardTokensPerYear);
         assertEq(emission.borrowRewardTokensPerYear, borrowRewardTokensPerYear);
@@ -88,11 +88,11 @@ contract TimedEmissionDataProviderTest is Test {
         vm.assume(emission.endTimestamp > emission.startTimestamp);
 
         vm.prank(caller);
-        dataProvider.setTimedRewardsEmission(token, urd, market, emission);
+        dataProvider.setTimedRewardsEmission(urd, token, market, emission);
 
         vm.prank(caller);
         vm.expectRevert(bytes(ErrorsLib.REWARDS_EMISSION_ALREADY_SET));
-        dataProvider.setTimedRewardsEmission(token, urd, market, emission);
+        dataProvider.setTimedRewardsEmission(urd, token, market, emission);
     }
 
     function testMulticall() public {
