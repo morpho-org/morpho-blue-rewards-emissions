@@ -45,7 +45,7 @@ contract TimedEmissionDataProvider is Multicall {
         Id market,
         TimedRewardsEmission calldata timedRewardsEmission
     ) public {
-        bytes32 timedRewardsEmissionId = keccak256(abi.encode(msg.sender, urd, rewardToken, market));
+        bytes32 timedRewardsEmissionId = _computeTimeRewardsEmissionId(msg.sender, urd, rewardToken, market);
 
         require(timedRewardsEmission.startTimestamp >= block.timestamp, ErrorsLib.START_TIMESTAMP_OUTDATED);
 
@@ -60,5 +60,32 @@ contract TimedEmissionDataProvider is Multicall {
         timedRewardsEmissions[timedRewardsEmissionId] = timedRewardsEmission;
 
         emit TimedRewardsEmissionSet(rewardToken, market, msg.sender, urd, timedRewardsEmission);
+    }
+
+    /// @notice Returns the time-bounded rewards emission for the given timedRewardsEmissionId.
+    /// Where timedRewardsEmissionId = keccak256(abi.encode(caller, urd, rewardToken, market)).
+    /// @param caller The caller of the `setTimedRewardsEmission` function.
+    /// @param urd The URD that should redistribute the rewards.
+    /// @param rewardToken The reward token of the emission.
+    /// @param market The id of market on which rewards are distributed.
+    function getTimedRewardsEmission(address caller, address urd, address rewardToken, Id market)
+        public
+        view
+        returns (TimedRewardsEmission memory)
+    {
+        return timedRewardsEmissions[_computeTimeRewardsEmissionId(caller, urd, rewardToken, market)];
+    }
+
+    /// @notice Computes the time-bounded rewards emission id.
+    /// @param caller The caller of the `setTimedRewardsEmission` function.
+    /// @param urd The URD that should redistribute the rewards.
+    /// @param rewardToken The reward token of the emission.
+    /// @param market The id of market on which rewards are distributed.
+    function _computeTimeRewardsEmissionId(address caller, address urd, address rewardToken, Id market)
+        internal
+        pure
+        returns (bytes32)
+    {
+        return keccak256(abi.encode(caller, urd, rewardToken, market));
     }
 }
