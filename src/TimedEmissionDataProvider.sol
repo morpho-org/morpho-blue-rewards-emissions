@@ -47,7 +47,7 @@ contract TimedEmissionDataProvider is Multicall {
     ) public {
         bytes32 timedRewardsEmissionId = keccak256(abi.encode(msg.sender, urd, rewardToken, market));
 
-        require(timedRewardsEmission.startTimestamp >= block.timestamp, ErrorsLib.START_TIMESTAMP_IN_THE_PAST);
+        require(timedRewardsEmission.startTimestamp >= block.timestamp, ErrorsLib.START_TIMESTAMP_OUTDATED);
 
         require(
             timedRewardsEmission.endTimestamp > timedRewardsEmission.startTimestamp, ErrorsLib.END_TIMESTAMP_TOO_EARLY
