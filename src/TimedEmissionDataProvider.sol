@@ -50,7 +50,7 @@ contract TimedEmissionDataProvider is Multicall {
         require(timedRewardsEmission.startTimestamp >= block.timestamp, ErrorsLib.START_TIMESTAMP_OUTDATED);
 
         require(
-            timedRewardsEmission.endTimestamp > timedRewardsEmission.startTimestamp, ErrorsLib.END_TIMESTAMP_TOO_EARLY
+            timedRewardsEmission.endTimestamp > timedRewardsEmission.startTimestamp, ErrorsLib.END_TIMESTAMP_INVALID
         );
 
         require(
