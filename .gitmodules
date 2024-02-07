@@ -7,3 +7,12 @@
 [submodule "lib/morpho-blue"]
 	path = lib/morpho-blue
 	url = https://github.com/morpho-org/morpho-blue
+[submodule "lib/morpho-blue-bundlers"]
+	path = lib/morpho-blue-bundlers
+	url = https://github.com/morpho-org/morpho-blue-bundlers
+[submodule "lib/morpho-utils"]
+	path = lib/morpho-utils
+	url = https://github.com/morpho-org/morpho-utils
+[submodule "lib/solmate"]
+	path = lib/solmate
+	url = https://github.com/transmissions11/solmate
