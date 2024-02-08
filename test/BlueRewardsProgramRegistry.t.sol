@@ -199,6 +199,35 @@ contract BlueRewardsProgramRegistryTest is Test {
         assertEq(0, registeredPrograms[1].endTimestamp);
     }
 
+    function testRegisterShouldRevertWhenAnIdenticalProgramIsProvided(RewardsProgram memory program)
+        public
+        assumeTimestampsAreValid(program)
+        assumeRewardsAreNotOverflowing(program)
+    {
+        // The user balance will be programs amount * 2.
+        uint256 userBalance = (
+            program.supplyRewardTokensPerYear + program.borrowRewardTokensPerYear
+                + program.collateralRewardTokensPerYear
+        ) * 2;
+
+        // create and mint ERC20
+        MockERC20 token = new MockERC20("mock", "MOCK", 18);
+        token.mint(USER, userBalance);
+
+        // approve BRR contract
+        vm.prank(USER);
+        ERC20(token).approve(address(registry), type(uint256).max);
+
+        // registration of the first program
+        vm.prank(USER);
+        registry.register(address(0), address(token), Id.wrap(bytes32(uint256(0))), program);
+
+        // registration of the same second program
+        vm.prank(USER);
+        vm.expectRevert(bytes(ErrorsLib.PROGRAM_ALREADY_SET));
+        registry.register(address(0), address(token), Id.wrap(bytes32(uint256(0))), program);
+    }
+
     function testMulticall() public {
         uint256 userBalance = 100;
         // create and mint ERC20s
