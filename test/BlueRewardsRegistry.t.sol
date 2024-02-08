@@ -2,11 +2,11 @@
 pragma solidity 0.8.21;
 
 import "forge-std/Test.sol";
-import "src/UniversalRewardsRegistry.sol";
+import "src/BlueRewardsRegistry.sol";
 import {MockERC20} from "lib/solmate/src/test/utils/mocks/MockERC20.sol";
 
-contract UniversalRewardsRegistryTest is Test {
-    UniversalRewardsRegistry registry;
+contract BlueRewardsRegistryTest is Test {
+    BlueRewardsRegistry registry;
     uint256 public constant MAX_COMMITMENTS_WITH_SAME_ID = 100;
     address internal USER = makeAddr("User");
 
@@ -21,7 +21,7 @@ contract UniversalRewardsRegistryTest is Test {
     );
 
     function setUp() public {
-        registry = new UniversalRewardsRegistry();
+        registry = new BlueRewardsRegistry();
     }
 
     modifier assumeRewardsAreNotOverflowing(RewardsCommitment memory commitment) {
@@ -56,7 +56,7 @@ contract UniversalRewardsRegistryTest is Test {
         MockERC20 token = new MockERC20("mock", "MOCK", 18);
         token.mint(USER, userBalance);
 
-        // approve URR contract
+        // approve BRR contract
         vm.prank(USER);
         ERC20(token).approve(address(registry), type(uint256).max);
 
@@ -113,7 +113,7 @@ contract UniversalRewardsRegistryTest is Test {
         MockERC20 token = new MockERC20("mock", "MOCK", 18);
         token.mint(USER, userBalance);
 
-        // approve URR contract
+        // approve BRR contract
         vm.prank(USER);
         ERC20(token).approve(address(registry), type(uint256).max);
 
@@ -135,7 +135,7 @@ contract UniversalRewardsRegistryTest is Test {
         MockERC20 token = new MockERC20("mock", "MOCK", 18);
         token.mint(USER, userBalance);
 
-        // approve URR contract
+        // approve BRR contract
         vm.prank(USER);
         ERC20(token).approve(address(registry), type(uint256).max);
 
@@ -162,7 +162,7 @@ contract UniversalRewardsRegistryTest is Test {
         MockERC20 token = new MockERC20("mock", "MOCK", 18);
         token.mint(USER, userBalance);
 
-        // approve URR contract
+        // approve BRR contract
         vm.prank(USER);
         ERC20(token).approve(address(registry), type(uint256).max);
 
@@ -213,7 +213,7 @@ contract UniversalRewardsRegistryTest is Test {
         MockERC20 token3 = new MockERC20("mock3", "MOCK3", 18);
         token3.mint(USER, userBalance);
 
-        // approve URR contract
+        // approve BRR contract
         vm.startPrank(USER);
         ERC20(token1).approve(address(registry), type(uint256).max);
         ERC20(token2).approve(address(registry), type(uint256).max);
@@ -288,7 +288,7 @@ contract UniversalRewardsRegistryTest is Test {
         MockERC20 token = new MockERC20("mock", "MOCK", 18);
         token.mint(USER, userBalance);
 
-        // approve URR contract
+        // approve BRR contract
         vm.prank(USER);
         ERC20(token).approve(address(registry), type(uint256).max);
 

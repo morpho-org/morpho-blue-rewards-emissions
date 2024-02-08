@@ -22,7 +22,7 @@ struct RewardsCommitment {
     uint256 endTimestamp;
 }
 
-contract UniversalRewardsRegistry is Multicall {
+contract BlueRewardsRegistry is Multicall {
     using SafeTransferLib for ERC20;
 
     uint256 public constant MAX_COMMITMENTS_WITH_SAME_ID = 100;
@@ -59,13 +59,10 @@ contract UniversalRewardsRegistry is Multicall {
 
         uint256 length = rewardsCommitments[commitmentId].length;
         for (uint256 i = 0; i < length; i++) {
-            // if the commitment is already registered and the start and end timestamps are in the past
+            // if the commitment is already registered and the end timestamp is in the past
             // then update the commitment
-            // in case of an empty commitment, the start and end timestamps are 0 so this condition is always true
-            if (
-                rewardsCommitments[commitmentId][i].startTimestamp < block.timestamp
-                    && rewardsCommitments[commitmentId][i].endTimestamp < block.timestamp
-            ) {
+            // in case of an empty commitment, the end timestamp is 0 so this condition is always true
+            if (rewardsCommitments[commitmentId][i].endTimestamp < block.timestamp) {
                 rewardsCommitments[commitmentId][i] = commitment;
 
                 // transfer the reward tokens from the sender to this contract
