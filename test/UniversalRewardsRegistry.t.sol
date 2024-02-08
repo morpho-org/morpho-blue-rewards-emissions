@@ -24,21 +24,21 @@ contract UniversalRewardsRegistryTest is Test {
         registry = new UniversalRewardsRegistry();
     }
 
-    modifier assumeRewardsAreNotOverflowing(RewardsCommitment calldata commitment) {
+    modifier assumeRewardsAreNotOverflowing(RewardsCommitment memory commitment) {
         vm.assume(
             commitment.supplyRewardTokensPerYear > 0 || commitment.borrowRewardTokensPerYear > 0
                 || commitment.collateralRewardTokensPerYear > 0
         );
         // realistic assumption, the three fields are less than 2^256 combined
         vm.assume(
-            commitment.supplyRewardTokensPerYear < (type(uint256).max / 3)
-                && commitment.borrowRewardTokensPerYear < (type(uint256).max / 3)
-                && commitment.collateralRewardTokensPerYear < (type(uint256).max / 3)
+            commitment.supplyRewardTokensPerYear < (type(uint256).max / 6)
+                && commitment.borrowRewardTokensPerYear < (type(uint256).max / 6)
+                && commitment.collateralRewardTokensPerYear < (type(uint256).max / 6)
         );
         _;
     }
 
-    modifier assumeTimestampsAreValid(RewardsCommitment calldata commitment) {
+    modifier assumeTimestampsAreValid(RewardsCommitment memory commitment) {
         vm.assume(commitment.startTimestamp >= block.timestamp);
         vm.assume(commitment.endTimestamp > commitment.startTimestamp);
         _;
@@ -141,6 +141,66 @@ contract UniversalRewardsRegistryTest is Test {
 
         vm.prank(USER);
         registry.register(address(0), address(token), Id.wrap(bytes32(uint256(0))), commitment);
+    }
+
+    function testCommitShouldBeReplacedIfTimestampsAreInThePast(RewardsCommitment memory commitment)
+        public
+        assumeTimestampsAreValid(commitment)
+        assumeRewardsAreNotOverflowing(commitment)
+    {
+        // necessary to avoid overflow when advancing time
+        vm.assume(block.timestamp > 0);
+        vm.assume(commitment.endTimestamp < type(uint256).max - 2);
+
+        // The user balance will be commitments amount * 2.
+        uint256 userBalance = (
+            commitment.supplyRewardTokensPerYear + commitment.borrowRewardTokensPerYear
+                + commitment.collateralRewardTokensPerYear
+        ) * 2;
+
+        // create and mint ERC20
+        MockERC20 token = new MockERC20("mock", "MOCK", 18);
+        token.mint(USER, userBalance);
+
+        // approve URR contract
+        vm.prank(USER);
+        ERC20(token).approve(address(registry), type(uint256).max);
+
+        // registration of the first commitment
+        vm.prank(USER);
+        registry.register(address(0), address(token), Id.wrap(bytes32(uint256(0))), commitment);
+
+        // advance time to the end of the first commitment + 1 second
+        uint256 futureTimestamp = commitment.endTimestamp + 1;
+        vm.warp(futureTimestamp);
+
+        // registration of the second commitment
+        RewardsCommitment memory newCommitment = RewardsCommitment(
+            commitment.supplyRewardTokensPerYear,
+            commitment.borrowRewardTokensPerYear,
+            commitment.collateralRewardTokensPerYear,
+            block.timestamp,
+            block.timestamp + 1
+        );
+        vm.prank(USER);
+        registry.register(address(0), address(token), Id.wrap(bytes32(uint256(0))), newCommitment);
+
+        RewardsCommitment[100] memory registeredCommitments =
+            registry.getCommitments(USER, address(0), address(token), Id.wrap(bytes32(uint256(0))));
+
+        assertEq(newCommitment.supplyRewardTokensPerYear, registeredCommitments[0].supplyRewardTokensPerYear);
+        assertEq(newCommitment.borrowRewardTokensPerYear, registeredCommitments[0].borrowRewardTokensPerYear);
+        assertEq(newCommitment.collateralRewardTokensPerYear, registeredCommitments[0].collateralRewardTokensPerYear);
+        assertEq(newCommitment.startTimestamp, registeredCommitments[0].startTimestamp);
+        assertEq(newCommitment.endTimestamp, registeredCommitments[0].endTimestamp);
+
+        // the first commitment should be replaced
+        // so the array should be empty at index 1
+        assertEq(0, registeredCommitments[1].supplyRewardTokensPerYear);
+        assertEq(0, registeredCommitments[1].borrowRewardTokensPerYear);
+        assertEq(0, registeredCommitments[1].collateralRewardTokensPerYear);
+        assertEq(0, registeredCommitments[1].startTimestamp);
+        assertEq(0, registeredCommitments[1].endTimestamp);
     }
 
     function testMulticall() public {
