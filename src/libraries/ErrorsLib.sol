@@ -6,20 +6,20 @@ pragma solidity ^0.8.0;
 /// @custom:contact security@morpho.org
 /// @notice Library exposing error messages.
 library ErrorsLib {
-    /// @notice Thrown when the start timestamp of the rewards emission is set in the past.
+    /// @notice Thrown when the start timestamp of the rewards program is set in the past.
     string internal constant START_TIMESTAMP_OUTDATED = "start timestamp outdated";
 
-    /// @notice Thrown when the end timestamp of the rewards emission is set earlier than the start timestamp.
+    /// @notice Thrown when the end timestamp of the rewards program is set earlier than the start timestamp.
     string internal constant END_TIMESTAMP_INVALID = "end timestamp invalid";
 
-    /// @notice Thrown when the rewards emission is already set.
-    string internal constant REWARDS_EMISSION_ALREADY_SET = "rewards emission already set";
+    /// @notice Thrown when the rewards program is already set.
+    string internal constant PROGRAM_ALREADY_SET = "program already set";
 
-    /// @notice Thrown when the maximum number of commitments with the same id is exceeded.
-    string internal constant MAX_COMMITMENTS_WITH_SAME_ID_EXCEEDED = "max commitments with same id exceeded";
+    /// @notice Thrown when the maximum number of program with the same id is exceeded.
+    string internal constant MAX_PROGRAMS_WITH_SAME_ID_EXCEEDED = "max programs with same id exceeded";
 
-    /// @notice Thrown when a commitment is set with invalid amounts.
-    string internal constant COMMITMENT_INVALID_AMOUNTS = "commitment invalid amounts";
+    /// @notice Thrown when a program is set with invalid amounts.
+    string internal constant PROGRAM_INVALID_AMOUNTS = "program invalid amounts";
 
     /// @dev Thrown when a call is attempted with a zero amount as input.
     string internal constant ZERO_AMOUNT = "zero amount";
