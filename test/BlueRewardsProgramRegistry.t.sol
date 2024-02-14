@@ -3,7 +3,6 @@ pragma solidity 0.8.21;
 
 import "forge-std/Test.sol";
 import "src/BlueRewardsProgramRegistry.sol";
-import {MockERC20} from "lib/solmate/src/test/utils/mocks/MockERC20.sol";
 
 contract BlueRewardsProgramRegistryTest is Test {
     BlueRewardsProgramRegistry registry;
@@ -20,44 +19,18 @@ contract BlueRewardsProgramRegistryTest is Test {
         registry = new BlueRewardsProgramRegistry();
     }
 
-    modifier assumeRewardsAreNotOverflowing(RewardsProgram memory program) {
-        vm.assume(
-            program.supplyRewardTokensPerYear > 0 || program.borrowRewardTokensPerYear > 0
-                || program.collateralRewardTokensPerYear > 0
-        );
-        // realistic assumption, the three fields are less than 2^256 combined
-        vm.assume(
-            program.supplyRewardTokensPerYear < (type(uint256).max / 6)
-                && program.borrowRewardTokensPerYear < (type(uint256).max / 6)
-                && program.collateralRewardTokensPerYear < (type(uint256).max / 6)
-        );
-        _;
-    }
-
     modifier assumeTimestampsAreValid(RewardsProgram memory program) {
         vm.assume(program.startTimestamp >= block.timestamp);
         vm.assume(program.endTimestamp > program.startTimestamp);
         _;
     }
 
-    function testRegister(address urd, Id market, RewardsProgram calldata program)
+    function testRegister(address urd, Id market, address token, RewardsProgram calldata program)
         public
         assumeTimestampsAreValid(program)
-        assumeRewardsAreNotOverflowing(program)
     {
-        uint256 userBalance = program.supplyRewardTokensPerYear + program.borrowRewardTokensPerYear
-            + program.collateralRewardTokensPerYear;
-
-        // create and mint ERC20
-        MockERC20 token = new MockERC20("mock", "MOCK", 18);
-        token.mint(USER, userBalance);
-
-        // approve BRR contract
-        vm.prank(USER);
-        ERC20(token).approve(address(registry), type(uint256).max);
-
         vm.expectEmit();
-        emit RewardsProgramRegistered(address(token), market, USER, urd, program);
+        emit RewardsProgramRegistered(token, market, USER, urd, program);
         vm.prank(USER);
         registry.register(urd, address(token), market, program);
 
@@ -70,10 +43,7 @@ contract BlueRewardsProgramRegistryTest is Test {
         assertEq(program.endTimestamp, registeredPrograms[0].endTimestamp);
     }
 
-    function testRegisterShouldRevertWhenStartTimestampIsInThePast(RewardsProgram calldata program)
-        public
-        assumeRewardsAreNotOverflowing(program)
-    {
+    function testRegisterShouldRevertWhenStartTimestampIsInThePast(RewardsProgram calldata program) public {
         // The start timestamp is set in the past.
         vm.assume(program.startTimestamp < block.timestamp);
         vm.assume(program.endTimestamp > program.startTimestamp);
@@ -83,10 +53,7 @@ contract BlueRewardsProgramRegistryTest is Test {
         registry.register(address(0), address(0), Id.wrap(bytes32(uint256(0))), program);
     }
 
-    function testRegisterShouldRevertWhenEndTimestampIsBeforeStartTimestamp(RewardsProgram calldata program)
-        public
-        assumeRewardsAreNotOverflowing(program)
-    {
+    function testRegisterShouldRevertWhenEndTimestampIsBeforeStartTimestamp(RewardsProgram calldata program) public {
         vm.assume(program.startTimestamp >= block.timestamp);
         // The end timestamp is set before the start timestamp.
         vm.assume(program.endTimestamp < program.startTimestamp);
@@ -96,75 +63,17 @@ contract BlueRewardsProgramRegistryTest is Test {
         registry.register(address(0), address(0), Id.wrap(bytes32(uint256(0))), program);
     }
 
-    function testRegisterShouldRevertWhenUserBalanceIsLessThanProgramAmount(RewardsProgram calldata program)
+    function testRegisterShouldBeReplacedIfTimestampsAreInThePast(address token, RewardsProgram memory program)
         public
         assumeTimestampsAreValid(program)
-        assumeRewardsAreNotOverflowing(program)
-    {
-        // The user balance will be less than the program amount by 1.
-        uint256 userBalance = program.supplyRewardTokensPerYear + program.borrowRewardTokensPerYear
-            + program.collateralRewardTokensPerYear - 1;
-
-        // create and mint ERC20
-        MockERC20 token = new MockERC20("mock", "MOCK", 18);
-        token.mint(USER, userBalance);
-
-        // approve BRR contract
-        vm.prank(USER);
-        ERC20(token).approve(address(registry), type(uint256).max);
-
-        vm.prank(USER);
-        vm.expectRevert(bytes(ErrorsLib.PROGRAM_INVALID_AMOUNTS));
-        registry.register(address(0), address(token), Id.wrap(bytes32(uint256(0))), program);
-    }
-
-    function testRegisterShouldSucceedWhenUserBalanceIsMoreThanProgramAmount(RewardsProgram calldata program)
-        public
-        assumeTimestampsAreValid(program)
-        assumeRewardsAreNotOverflowing(program)
-    {
-        // The user balance will be more than the program amount by 1.
-        uint256 userBalance = program.supplyRewardTokensPerYear + program.borrowRewardTokensPerYear
-            + program.collateralRewardTokensPerYear + 1;
-
-        // create and mint ERC20
-        MockERC20 token = new MockERC20("mock", "MOCK", 18);
-        token.mint(USER, userBalance);
-
-        // approve BRR contract
-        vm.prank(USER);
-        ERC20(token).approve(address(registry), type(uint256).max);
-
-        vm.prank(USER);
-        registry.register(address(0), address(token), Id.wrap(bytes32(uint256(0))), program);
-    }
-
-    function testRegisterShouldBeReplacedIfTimestampsAreInThePast(RewardsProgram memory program)
-        public
-        assumeTimestampsAreValid(program)
-        assumeRewardsAreNotOverflowing(program)
     {
         // necessary to avoid overflow when advancing time
         vm.assume(block.timestamp > 0);
         vm.assume(program.endTimestamp < type(uint256).max - 2);
 
-        // The user balance will be programs amount * 2.
-        uint256 userBalance = (
-            program.supplyRewardTokensPerYear + program.borrowRewardTokensPerYear
-                + program.collateralRewardTokensPerYear
-        ) * 2;
-
-        // create and mint ERC20
-        MockERC20 token = new MockERC20("mock", "MOCK", 18);
-        token.mint(USER, userBalance);
-
-        // approve BRR contract
-        vm.prank(USER);
-        ERC20(token).approve(address(registry), type(uint256).max);
-
         // registration of the first program
         vm.prank(USER);
-        registry.register(address(0), address(token), Id.wrap(bytes32(uint256(0))), program);
+        registry.register(address(0), token, Id.wrap(bytes32(uint256(0))), program);
 
         // advance time to the end of the first program + 1 second
         uint256 futureTimestamp = program.endTimestamp + 1;
@@ -179,10 +88,10 @@ contract BlueRewardsProgramRegistryTest is Test {
             block.timestamp + 1
         );
         vm.prank(USER);
-        registry.register(address(0), address(token), Id.wrap(bytes32(uint256(0))), newProgram);
+        registry.register(address(0), token, Id.wrap(bytes32(uint256(0))), newProgram);
 
         RewardsProgram[100] memory registeredPrograms =
-            registry.getPrograms(USER, address(0), address(token), Id.wrap(bytes32(uint256(0))));
+            registry.getPrograms(USER, address(0), token, Id.wrap(bytes32(uint256(0))));
 
         assertEq(newProgram.supplyRewardTokensPerYear, registeredPrograms[0].supplyRewardTokensPerYear);
         assertEq(newProgram.borrowRewardTokensPerYear, registeredPrograms[0].borrowRewardTokensPerYear);
@@ -202,55 +111,28 @@ contract BlueRewardsProgramRegistryTest is Test {
     function testRegisterShouldRevertWhenAnIdenticalProgramIsProvided(RewardsProgram memory program)
         public
         assumeTimestampsAreValid(program)
-        assumeRewardsAreNotOverflowing(program)
     {
-        // The user balance will be programs amount * 2.
-        uint256 userBalance = (
-            program.supplyRewardTokensPerYear + program.borrowRewardTokensPerYear
-                + program.collateralRewardTokensPerYear
-        ) * 2;
-
-        // create and mint ERC20
-        MockERC20 token = new MockERC20("mock", "MOCK", 18);
-        token.mint(USER, userBalance);
-
-        // approve BRR contract
-        vm.prank(USER);
-        ERC20(token).approve(address(registry), type(uint256).max);
-
         // registration of the first program
         vm.prank(USER);
-        registry.register(address(0), address(token), Id.wrap(bytes32(uint256(0))), program);
+        registry.register(address(0), address(1), Id.wrap(bytes32(uint256(0))), program);
 
         // registration of the same second program
         vm.prank(USER);
         vm.expectRevert(bytes(ErrorsLib.PROGRAM_ALREADY_SET));
-        registry.register(address(0), address(token), Id.wrap(bytes32(uint256(0))), program);
+        registry.register(address(0), address(1), Id.wrap(bytes32(uint256(0))), program);
     }
 
     function testMulticall() public {
-        uint256 userBalance = 100;
-        // create and mint ERC20s
-        MockERC20 token1 = new MockERC20("mock1", "MOCK1", 18);
-        token1.mint(USER, userBalance);
-        MockERC20 token2 = new MockERC20("mock2", "MOCK2", 18);
-        token2.mint(USER, userBalance);
-        MockERC20 token3 = new MockERC20("mock3", "MOCK3", 18);
-        token3.mint(USER, userBalance);
-
-        // approve BRR contract
-        vm.startPrank(USER);
-        ERC20(token1).approve(address(registry), type(uint256).max);
-        ERC20(token2).approve(address(registry), type(uint256).max);
-        ERC20(token3).approve(address(registry), type(uint256).max);
-        vm.stopPrank();
+        address token1 = makeAddr("Token1");
+        address token2 = makeAddr("Token2");
+        address token3 = makeAddr("Token3");
 
         data.push(
             abi.encodeCall(
                 registry.register,
                 (
                     address(0),
-                    address(token1),
+                    token1,
                     Id.wrap(bytes32(uint256(1))),
                     RewardsProgram(1, 1, 1, block.timestamp, block.timestamp + 1)
                 )
@@ -261,7 +143,7 @@ contract BlueRewardsProgramRegistryTest is Test {
                 registry.register,
                 (
                     address(1),
-                    address(token2),
+                    token2,
                     Id.wrap(bytes32(uint256(2))),
                     RewardsProgram(2, 2, 2, block.timestamp + 1, block.timestamp + 2)
                 )
@@ -272,7 +154,7 @@ contract BlueRewardsProgramRegistryTest is Test {
                 registry.register,
                 (
                     address(2),
-                    address(token3),
+                    token3,
                     Id.wrap(bytes32(uint256(3))),
                     RewardsProgram(3, 3, 3, block.timestamp + 2, block.timestamp + 3)
                 )
@@ -307,18 +189,8 @@ contract BlueRewardsProgramRegistryTest is Test {
     }
 
     function testMulticallForSameURDSameTokenAndSameMarket() public {
-        // enough funds to cover all programs
-        uint256 userBalance = MAX_PROGRAMS_WITH_SAME_ID + 1;
-        // create and mint ERC20s
-        MockERC20 token = new MockERC20("mock", "MOCK", 18);
-        token.mint(USER, userBalance);
-
-        // approve BRR contract
-        vm.prank(USER);
-        ERC20(token).approve(address(registry), type(uint256).max);
-
         address urd = makeAddr("URD");
-        address rewardToken = address(token);
+        address rewardToken = makeAddr("RewardToken");
         Id market = Id.wrap(bytes32(uint256(0)));
 
         // create 100 programs for the same URD, token and market
