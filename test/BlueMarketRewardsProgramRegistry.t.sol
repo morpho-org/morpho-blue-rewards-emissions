@@ -2,39 +2,43 @@
 pragma solidity 0.8.21;
 
 import "forge-std/Test.sol";
-import "src/BlueRewardsProgramRegistry.sol";
+import "src/BlueMarketRewardsProgramRegistry.sol";
 
-contract BlueRewardsProgramRegistryTest is Test {
-    BlueRewardsProgramRegistry registry;
+contract BlueMarketRewardsProgramRegistryTest is Test {
+    BlueMarketRewardsProgramRegistry registry;
     uint256 public constant MAX_PROGRAMS_WITH_SAME_ID = 100;
     address internal USER = makeAddr("User");
 
     bytes[] internal data;
 
-    event RewardsProgramRegistered(
-        address indexed rewardToken, Id indexed market, address indexed sender, address urd, RewardsProgram program
+    event ProgramRegistered(
+        address indexed rewardToken,
+        Id indexed market,
+        address indexed sender,
+        address urd,
+        MarketRewardsProgram program
     );
 
     function setUp() public {
-        registry = new BlueRewardsProgramRegistry();
+        registry = new BlueMarketRewardsProgramRegistry();
     }
 
-    modifier assumeTimestampsAreValid(RewardsProgram memory program) {
+    modifier assumeTimestampsAreValid(MarketRewardsProgram memory program) {
         vm.assume(program.startTimestamp >= block.timestamp);
         vm.assume(program.endTimestamp > program.startTimestamp);
         _;
     }
 
-    function testRegister(address urd, Id market, address token, RewardsProgram calldata program)
+    function testRegister(address urd, Id market, address token, MarketRewardsProgram calldata program)
         public
         assumeTimestampsAreValid(program)
     {
         vm.expectEmit();
-        emit RewardsProgramRegistered(token, market, USER, urd, program);
+        emit ProgramRegistered(token, market, USER, urd, program);
         vm.prank(USER);
         registry.register(urd, address(token), market, program);
 
-        RewardsProgram[100] memory registeredPrograms = registry.getPrograms(USER, urd, address(token), market);
+        MarketRewardsProgram[100] memory registeredPrograms = registry.getPrograms(USER, urd, address(token), market);
 
         assertEq(program.supplyRewardTokensPerYear, registeredPrograms[0].supplyRewardTokensPerYear);
         assertEq(program.borrowRewardTokensPerYear, registeredPrograms[0].borrowRewardTokensPerYear);
@@ -43,7 +47,7 @@ contract BlueRewardsProgramRegistryTest is Test {
         assertEq(program.endTimestamp, registeredPrograms[0].endTimestamp);
     }
 
-    function testRegisterShouldRevertWhenStartTimestampIsInThePast(RewardsProgram calldata program) public {
+    function testRegisterShouldRevertWhenStartTimestampIsInThePast(MarketRewardsProgram calldata program) public {
         // The start timestamp is set in the past.
         vm.assume(program.startTimestamp < block.timestamp);
         vm.assume(program.endTimestamp > program.startTimestamp);
@@ -53,7 +57,9 @@ contract BlueRewardsProgramRegistryTest is Test {
         registry.register(address(0), address(0), Id.wrap(bytes32(uint256(0))), program);
     }
 
-    function testRegisterShouldRevertWhenEndTimestampIsBeforeStartTimestamp(RewardsProgram calldata program) public {
+    function testRegisterShouldRevertWhenEndTimestampIsBeforeStartTimestamp(MarketRewardsProgram calldata program)
+        public
+    {
         vm.assume(program.startTimestamp >= block.timestamp);
         // The end timestamp is set before the start timestamp.
         vm.assume(program.endTimestamp < program.startTimestamp);
@@ -63,7 +69,7 @@ contract BlueRewardsProgramRegistryTest is Test {
         registry.register(address(0), address(0), Id.wrap(bytes32(uint256(0))), program);
     }
 
-    function testRegisterShouldBeReplacedIfTimestampsAreInThePast(address token, RewardsProgram memory program)
+    function testRegisterShouldBeReplacedIfTimestampsAreInThePast(address token, MarketRewardsProgram memory program)
         public
         assumeTimestampsAreValid(program)
     {
@@ -80,7 +86,7 @@ contract BlueRewardsProgramRegistryTest is Test {
         vm.warp(futureTimestamp);
 
         // registration of the second program
-        RewardsProgram memory newProgram = RewardsProgram(
+        MarketRewardsProgram memory newProgram = MarketRewardsProgram(
             program.supplyRewardTokensPerYear,
             program.borrowRewardTokensPerYear,
             program.collateralRewardTokensPerYear,
@@ -90,7 +96,7 @@ contract BlueRewardsProgramRegistryTest is Test {
         vm.prank(USER);
         registry.register(address(0), token, Id.wrap(bytes32(uint256(0))), newProgram);
 
-        RewardsProgram[100] memory registeredPrograms =
+        MarketRewardsProgram[100] memory registeredPrograms =
             registry.getPrograms(USER, address(0), token, Id.wrap(bytes32(uint256(0))));
 
         assertEq(newProgram.supplyRewardTokensPerYear, registeredPrograms[0].supplyRewardTokensPerYear);
@@ -108,7 +114,7 @@ contract BlueRewardsProgramRegistryTest is Test {
         assertEq(0, registeredPrograms[1].endTimestamp);
     }
 
-    function testRegisterShouldRevertWhenAnIdenticalProgramIsProvided(RewardsProgram memory program)
+    function testRegisterShouldRevertWhenAnIdenticalProgramIsProvided(MarketRewardsProgram memory program)
         public
         assumeTimestampsAreValid(program)
     {
@@ -134,7 +140,7 @@ contract BlueRewardsProgramRegistryTest is Test {
                     address(0),
                     token1,
                     Id.wrap(bytes32(uint256(1))),
-                    RewardsProgram(1, 1, 1, block.timestamp, block.timestamp + 1)
+                    MarketRewardsProgram(1, 1, 1, block.timestamp, block.timestamp + 1)
                 )
             )
         );
@@ -145,7 +151,7 @@ contract BlueRewardsProgramRegistryTest is Test {
                     address(1),
                     token2,
                     Id.wrap(bytes32(uint256(2))),
-                    RewardsProgram(2, 2, 2, block.timestamp + 1, block.timestamp + 2)
+                    MarketRewardsProgram(2, 2, 2, block.timestamp + 1, block.timestamp + 2)
                 )
             )
         );
@@ -156,7 +162,7 @@ contract BlueRewardsProgramRegistryTest is Test {
                     address(2),
                     token3,
                     Id.wrap(bytes32(uint256(3))),
-                    RewardsProgram(3, 3, 3, block.timestamp + 2, block.timestamp + 3)
+                    MarketRewardsProgram(3, 3, 3, block.timestamp + 2, block.timestamp + 3)
                 )
             )
         );
@@ -164,11 +170,11 @@ contract BlueRewardsProgramRegistryTest is Test {
         vm.prank(USER);
         registry.multicall(data);
 
-        RewardsProgram memory program0 =
+        MarketRewardsProgram memory program0 =
             registry.getPrograms(USER, address(0), address(token1), Id.wrap(bytes32(uint256(1))))[0];
-        RewardsProgram memory program1 =
+        MarketRewardsProgram memory program1 =
             registry.getPrograms(USER, address(1), address(token2), Id.wrap(bytes32(uint256(2))))[0];
-        RewardsProgram memory program2 =
+        MarketRewardsProgram memory program2 =
             registry.getPrograms(USER, address(2), address(token3), Id.wrap(bytes32(uint256(3))))[0];
 
         assertEq(program0.supplyRewardTokensPerYear, 1);
@@ -199,7 +205,12 @@ contract BlueRewardsProgramRegistryTest is Test {
             data.push(
                 abi.encodeCall(
                     registry.register,
-                    (urd, rewardToken, market, RewardsProgram(1, 0, 0, block.timestamp + i, block.timestamp + i + 1))
+                    (
+                        urd,
+                        rewardToken,
+                        market,
+                        MarketRewardsProgram(1, 0, 0, block.timestamp + i, block.timestamp + i + 1)
+                    )
                 )
             );
         }
@@ -208,7 +219,8 @@ contract BlueRewardsProgramRegistryTest is Test {
         registry.multicall(data);
 
         // get all the programs for the same URD, token and market
-        RewardsProgram[MAX_PROGRAMS_WITH_SAME_ID] memory programs = registry.getPrograms(USER, urd, rewardToken, market);
+        MarketRewardsProgram[MAX_PROGRAMS_WITH_SAME_ID] memory programs =
+            registry.getPrograms(USER, urd, rewardToken, market);
 
         for (uint256 i = 0; i < 100; i++) {
             assertEq(programs[i].supplyRewardTokensPerYear, 1);
@@ -227,7 +239,7 @@ contract BlueRewardsProgramRegistryTest is Test {
             urd,
             rewardToken,
             market,
-            RewardsProgram(
+            MarketRewardsProgram(
                 1,
                 0,
                 0,
