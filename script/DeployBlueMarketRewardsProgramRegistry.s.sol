@@ -10,6 +10,6 @@ contract DeployBlueMarketRewardsProgramRegistry is Script {
     function run() public {
         vm.broadcast();
         BlueMarketRewardsProgramRegistry registry = new BlueMarketRewardsProgramRegistry{salt: SALT}();
-        console2.log("BlueRewardsPorgramRegistry deployed at address: ", address(registry));
+        console2.log("BlueRewardsProgramRegistry deployed at address: ", address(registry));
     }
 }
