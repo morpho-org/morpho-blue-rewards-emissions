@@ -69,9 +69,11 @@ contract BlueMarketRewardsProgramRegistry is Multicall {
         view
         returns (MarketRewardsProgram[] memory)
     {
-        MarketRewardsProgram[] memory result = new MarketRewardsProgram[](MAX_PROGRAMS_WITH_SAME_ID);
-        for (uint256 i = 0; i < MAX_PROGRAMS_WITH_SAME_ID; i++) {
-            result[i] = programs[_id(caller, urd, rewardToken, market)][i];
+        bytes32 programId = _id(caller, urd, rewardToken, market);
+        uint8 length = getArrayLength(programId);
+        MarketRewardsProgram[] memory result = new MarketRewardsProgram[](length);
+        for (uint256 i = 0; i < length; i++) {
+            result[i] = programs[programId][i];
         }
         return result;
     }
@@ -82,11 +84,10 @@ contract BlueMarketRewardsProgramRegistry is Multicall {
     function getArrayLength(bytes32 programId) public view returns (uint8) {
         uint8 length = 0;
         for (uint8 i = 0; i < MAX_PROGRAMS_WITH_SAME_ID; i++) {
-            if (programs[programId][i].endTimestamp > 0) {
-                length++;
-            } else {
+            if (programs[programId][i].endTimestamp == 0) {
                 return length;
             }
+            length++;
         }
         return length;
     }

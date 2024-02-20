@@ -68,6 +68,20 @@ contract BlueMarketRewardsProgramRegistryTest is Test {
         registry.register(address(0), address(0), Id.wrap(bytes32(uint256(0))), program);
     }
 
+    function testGetArrayLength() public {
+        bytes32 programId = keccak256(abi.encode(USER, address(0), address(0), Id.wrap(bytes32(uint256(0)))));
+        assertEq(registry.getArrayLength(programId), 0);
+
+        vm.prank(USER);
+        registry.register(
+            address(0),
+            address(0),
+            Id.wrap(bytes32(uint256(0))),
+            MarketRewardsProgram(1, 1, 1, block.timestamp, block.timestamp + 1)
+        );
+        assertEq(registry.getArrayLength(programId), 1);
+    }
+
     function testMulticall() public {
         address token1 = makeAddr("Token1");
         address token2 = makeAddr("Token2");
