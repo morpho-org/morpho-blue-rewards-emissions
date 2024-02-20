@@ -12,15 +12,6 @@ library ErrorsLib {
     /// @notice Thrown when the end timestamp of the rewards program is set earlier than the start timestamp.
     string internal constant END_TIMESTAMP_INVALID = "end timestamp invalid";
 
-    /// @notice Thrown when the rewards program is already set.
-    string internal constant PROGRAM_ALREADY_SET = "program already set";
-
     /// @notice Thrown when the maximum number of program with the same id is exceeded.
     string internal constant MAX_PROGRAMS_WITH_SAME_ID_EXCEEDED = "max programs with same id exceeded";
-
-    /// @notice Thrown when a program is set with invalid amounts.
-    string internal constant PROGRAM_INVALID_AMOUNTS = "program invalid amounts";
-
-    /// @dev Thrown when a call is attempted with a zero amount as input.
-    string internal constant ZERO_AMOUNT = "zero amount";
 }

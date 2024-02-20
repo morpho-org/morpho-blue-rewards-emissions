@@ -21,7 +21,7 @@ struct MarketRewardsProgram {
 }
 
 contract BlueMarketRewardsProgramRegistry is Multicall {
-    uint256 public constant MAX_PROGRAMS_WITH_SAME_ID = 100;
+    uint8 public constant MAX_PROGRAMS_WITH_SAME_ID = 30;
 
     /// @notice Returns the time-bounded market rewards programs for a given id.
     /// Where id = keccak256(abi.encode(msg.sender, urd, rewardToken, market)).
@@ -48,31 +48,14 @@ contract BlueMarketRewardsProgramRegistry is Multicall {
 
         require(program.endTimestamp > program.startTimestamp, ErrorsLib.END_TIMESTAMP_INVALID);
 
-        uint256 length = programs[programId].length;
-        for (uint256 i = 0; i < length; i++) {
-            MarketRewardsProgram memory existingProgram = programs[programId][i];
-
-            if (
-                existingProgram.supplyRewardTokensPerYear == program.supplyRewardTokensPerYear
-                    && existingProgram.borrowRewardTokensPerYear == program.borrowRewardTokensPerYear
-                    && existingProgram.collateralRewardTokensPerYear == program.collateralRewardTokensPerYear
-                    && existingProgram.startTimestamp == program.startTimestamp
-                    && existingProgram.endTimestamp == program.endTimestamp
-            ) {
-                revert(ErrorsLib.PROGRAM_ALREADY_SET);
-            }
-
-            // if the program is not active anymore, we can override it
-            // in case of an empty program, the end timestamp is 0 so this condition is always true
-            if (existingProgram.endTimestamp < block.timestamp) {
-                programs[programId][i] = program;
-
-                emit ProgramRegistered(rewardToken, market, msg.sender, urd, program);
-                return;
-            }
+        uint8 length = getArrayLength(programId);
+        if (length == MAX_PROGRAMS_WITH_SAME_ID) {
+            revert(ErrorsLib.MAX_PROGRAMS_WITH_SAME_ID_EXCEEDED);
         }
 
-        revert(ErrorsLib.MAX_PROGRAMS_WITH_SAME_ID_EXCEEDED);
+        programs[programId][length] = program;
+
+        emit ProgramRegistered(rewardToken, market, msg.sender, urd, program);
     }
 
     /// @notice Returns the time-bounded market rewards programs for a given id.
@@ -84,9 +67,28 @@ contract BlueMarketRewardsProgramRegistry is Multicall {
     function getPrograms(address caller, address urd, address rewardToken, Id market)
         public
         view
-        returns (MarketRewardsProgram[MAX_PROGRAMS_WITH_SAME_ID] memory)
+        returns (MarketRewardsProgram[] memory)
     {
-        return programs[_id(caller, urd, rewardToken, market)];
+        MarketRewardsProgram[] memory result = new MarketRewardsProgram[](MAX_PROGRAMS_WITH_SAME_ID);
+        for (uint256 i = 0; i < MAX_PROGRAMS_WITH_SAME_ID; i++) {
+            result[i] = programs[_id(caller, urd, rewardToken, market)][i];
+        }
+        return result;
+    }
+
+    /// @notice Returns the length of the time-bounded market rewards programs for a given id.
+    /// Where id = keccak256(abi.encode(caller, urd, rewardToken, market)).
+    /// @param programId The id of the time-bounded market rewards programs.
+    function getArrayLength(bytes32 programId) public view returns (uint8) {
+        uint8 length = 0;
+        for (uint8 i = 0; i < MAX_PROGRAMS_WITH_SAME_ID; i++) {
+            if (programs[programId][i].endTimestamp > 0) {
+                length++;
+            } else {
+                return length;
+            }
+        }
+        return length;
     }
 
     /// @notice Computes the time-bounded market rewards program id.
