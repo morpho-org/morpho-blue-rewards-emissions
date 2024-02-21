@@ -68,7 +68,7 @@ contract BlueMarketRewardsProgramRegistryTest is Test {
         registry.register(address(0), address(0), Id.wrap(bytes32(uint256(0))), program);
     }
 
-    function testGetArrayLength() public {
+    function testGetNumberOfProgramsForId() public {
         bytes32 id = keccak256(abi.encode(USER, address(0), address(0), Id.wrap(bytes32(uint256(0)))));
         assertEq(registry.getNumberOfProgramsForId(id), 0);
 
