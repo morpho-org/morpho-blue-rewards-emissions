@@ -50,7 +50,7 @@ contract BlueMarketRewardsProgramRegistry is Multicall {
 
         bytes32 id = _id(msg.sender, urd, rewardToken, market);
 
-        if (getArrayLength(id) == MAX_PROGRAMS_WITH_SAME_ID) {
+        if (getNumberOfProgramsForId(id) == MAX_PROGRAMS_WITH_SAME_ID) {
             revert(ErrorsLib.MAX_PROGRAMS_WITH_SAME_ID_EXCEEDED);
         }
 
@@ -73,10 +73,10 @@ contract BlueMarketRewardsProgramRegistry is Multicall {
         return programs[_id(caller, urd, rewardToken, market)];
     }
 
-    /// @notice Returns the length of the set of time-bounded market rewards programs for a given id.
+    /// @notice Returns the number of time-bounded market rewards programs with the same id.
     /// Where id = keccak256(abi.encode(caller, urd, rewardToken, market)).
     /// @param id The id of the time-bounded market rewards programs.
-    function getArrayLength(bytes32 id) public view returns (uint8) {
+    function getNumberOfProgramsForId(bytes32 id) public view returns (uint8) {
         return uint8(programs[id].length);
     }
 
