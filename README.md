@@ -1,8 +1,8 @@
-## BlueMarketRewardsProgramRegistry contract
+## MarketRewardsProgramRegistry contract
 
 ### Overview
 
-The legacy `EmissionDataProvider` contract provides a streamlined method for tracking emissions of a specific ERC20 token within a rewards program operated on Morpho Blue. It allows users to set emission rates for various rewards tokens in different markets. The `BlueMarketRewardsProgramRegistry` contract is the updated version of the `EmissionDataProvider` contract to handle time-bounded rewards programs.
+The legacy `EmissionDataProvider` contract provides a streamlined method for tracking emissions of a specific ERC20 token within a rewards program operated on Morpho Blue. It allows users to set emission rates for various rewards tokens in different markets. The `MarketRewardsProgramRegistry` contract is the updated version of the `EmissionDataProvider` contract to handle time-bounded rewards programs.
 
 ### Key Features
 
@@ -11,7 +11,7 @@ The legacy `EmissionDataProvider` contract provides a streamlined method for tra
 - **Rewards Structure**: Rates are indicative of potential rewards. The actual distribution is handled by the `UniversalRewardsDistributor` contract during each update cycle, contingent on the trustworthiness of the rewards curator.
 - **Program Structure**: The contract is designed to handle multiple rewards programs, each with its own start and end times. Once a program is registered, it is immutable and cannot be updated. Projects can set at most 30 programs per `id` with `id = keccak256(abi.encode(sender, urd, rewardToken, market))`.
 
-### Rewards Programs Structure
+### Rewards Program Structure
 
 - **Sender**: Address defining the rate. Can be any user.
 - **URD (Universal Rewards Distributor)**: Address for distributing rewards. Can be any URD.
@@ -25,7 +25,7 @@ Rates are defined per year and only apply to a certain period.
 
 ### Specifications
 
-- **Discontinuing a Rate**: Rates are ceased when the program's `endTimestamp` is reached.
+- **Discontinuing a Rate**: Rates cease when the program's `end` is reached.
 - **Validity and Trust**: Rates are effective immediately after a program registration. However, the contract is not trustless. It is a trust-minimized system, relying on the rewards distributor's commitment to distribute the rewards at each update.
 - **Transparency and Scalability**: This contract enhances transparency and scalability in the rewards distribution process, supported by distribution and reader scripts provided by the Morpho Association.
 
@@ -39,7 +39,7 @@ Rates are defined per year and only apply to a certain period.
 
 ### License
 
-BlueMarketRewardsProgramRegistry and EmissionDataProvider are licensed under MIT, see [LICENSE](./LICENSE).
+MarketRewardsProgramRegistry and EmissionDataProvider are licensed under MIT, see [LICENSE](./LICENSE).
 
 ### Note
 

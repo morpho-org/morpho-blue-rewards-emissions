@@ -2,10 +2,10 @@
 pragma solidity 0.8.21;
 
 import "forge-std/Test.sol";
-import "src/BlueMarketRewardsProgramRegistry.sol";
+import "src/MarketRewardsProgramRegistry.sol";
 
-contract BlueMarketRewardsProgramRegistryTest is Test {
-    BlueMarketRewardsProgramRegistry registry;
+contract MarketRewardsProgramRegistryTest is Test {
+    MarketRewardsProgramRegistry registry;
     address internal USER = makeAddr("User");
 
     bytes[] internal data;
@@ -19,12 +19,12 @@ contract BlueMarketRewardsProgramRegistryTest is Test {
     );
 
     function setUp() public {
-        registry = new BlueMarketRewardsProgramRegistry();
+        registry = new MarketRewardsProgramRegistry();
     }
 
     modifier assumeTimestampsAreValid(MarketRewardsProgram memory program) {
-        vm.assume(program.startTimestamp >= block.timestamp);
-        vm.assume(program.endTimestamp > program.startTimestamp);
+        vm.assume(program.start >= block.timestamp);
+        vm.assume(program.end > program.start);
         _;
     }
 
@@ -42,26 +42,24 @@ contract BlueMarketRewardsProgramRegistryTest is Test {
         assertEq(program.supplyRewardTokensPerYear, registeredPrograms[0].supplyRewardTokensPerYear);
         assertEq(program.borrowRewardTokensPerYear, registeredPrograms[0].borrowRewardTokensPerYear);
         assertEq(program.collateralRewardTokensPerYear, registeredPrograms[0].collateralRewardTokensPerYear);
-        assertEq(program.startTimestamp, registeredPrograms[0].startTimestamp);
-        assertEq(program.endTimestamp, registeredPrograms[0].endTimestamp);
+        assertEq(program.start, registeredPrograms[0].start);
+        assertEq(program.end, registeredPrograms[0].end);
     }
 
-    function testRegisterShouldRevertWhenStartTimestampIsInThePast(MarketRewardsProgram calldata program) public {
+    function testRegisterShouldRevertWhenstartIsInThePast(MarketRewardsProgram calldata program) public {
         // The start timestamp is set in the past.
-        vm.assume(program.startTimestamp < block.timestamp);
-        vm.assume(program.endTimestamp > program.startTimestamp);
+        vm.assume(program.start < block.timestamp);
+        vm.assume(program.end > program.start);
 
         vm.prank(USER);
         vm.expectRevert(bytes(ErrorsLib.START_TIMESTAMP_OUTDATED));
         registry.register(address(0), address(0), Id.wrap(bytes32(uint256(0))), program);
     }
 
-    function testRegisterShouldRevertWhenEndTimestampIsBeforeStartTimestamp(MarketRewardsProgram calldata program)
-        public
-    {
-        vm.assume(program.startTimestamp >= block.timestamp);
+    function testRegisterShouldRevertWhenendIsBeforestart(MarketRewardsProgram calldata program) public {
+        vm.assume(program.start >= block.timestamp);
         // The end timestamp is set before the start timestamp.
-        vm.assume(program.endTimestamp < program.startTimestamp);
+        vm.assume(program.end < program.start);
 
         vm.prank(USER);
         vm.expectRevert(bytes(ErrorsLib.END_TIMESTAMP_INVALID));
@@ -134,18 +132,18 @@ contract BlueMarketRewardsProgramRegistryTest is Test {
         assertEq(program0.supplyRewardTokensPerYear, 1);
         assertEq(program0.borrowRewardTokensPerYear, 1);
         assertEq(program0.collateralRewardTokensPerYear, 1);
-        assertEq(program0.startTimestamp, block.timestamp);
-        assertEq(program0.endTimestamp, block.timestamp + 1);
+        assertEq(program0.start, block.timestamp);
+        assertEq(program0.end, block.timestamp + 1);
         assertEq(program1.supplyRewardTokensPerYear, 2);
         assertEq(program1.borrowRewardTokensPerYear, 2);
         assertEq(program1.collateralRewardTokensPerYear, 2);
-        assertEq(program1.startTimestamp, block.timestamp + 1);
-        assertEq(program1.endTimestamp, block.timestamp + 2);
+        assertEq(program1.start, block.timestamp + 1);
+        assertEq(program1.end, block.timestamp + 2);
         assertEq(program2.supplyRewardTokensPerYear, 3);
         assertEq(program2.borrowRewardTokensPerYear, 3);
         assertEq(program2.collateralRewardTokensPerYear, 3);
-        assertEq(program2.startTimestamp, block.timestamp + 2);
-        assertEq(program2.endTimestamp, block.timestamp + 3);
+        assertEq(program2.start, block.timestamp + 2);
+        assertEq(program2.end, block.timestamp + 3);
     }
 
     function testMulticallForSameURDSameTokenAndSameMarket() public {
@@ -153,7 +151,7 @@ contract BlueMarketRewardsProgramRegistryTest is Test {
         address rewardToken = makeAddr("RewardToken");
         Id market = Id.wrap(bytes32(uint256(0)));
 
-        uint8 MAX_PROGRAMS_WITH_SAME_ID = registry.MAX_PROGRAMS_WITH_SAME_ID();
+        uint256 MAX_PROGRAMS_WITH_SAME_ID = registry.MAX_PROGRAMS_WITH_SAME_ID();
         // create maximum programs for the same URD, token and market
         // with rewards for supply of 1
         for (uint256 i = 0; i < MAX_PROGRAMS_WITH_SAME_ID; i++) {
@@ -180,8 +178,8 @@ contract BlueMarketRewardsProgramRegistryTest is Test {
             assertEq(programs[i].supplyRewardTokensPerYear, 1);
             assertEq(programs[i].borrowRewardTokensPerYear, 0);
             assertEq(programs[i].collateralRewardTokensPerYear, 0);
-            assertEq(programs[i].startTimestamp, block.timestamp + i);
-            assertEq(programs[i].endTimestamp, block.timestamp + i + 1);
+            assertEq(programs[i].start, block.timestamp + i);
+            assertEq(programs[i].end, block.timestamp + i + 1);
         }
 
         // add one more program for the same URD, token and market

@@ -15,13 +15,17 @@ struct MarketRewardsProgram {
     /// @notice The number of reward tokens distributed per year on the collateral side (in the reward token decimals).
     uint256 collateralRewardTokensPerYear;
     /// @notice The timestamp at which the rewards program starts.
-    uint256 startTimestamp;
+    uint256 start;
     /// @notice The timestamp at which the rewards program ends.
-    uint256 endTimestamp;
+    uint256 end;
 }
 
-contract BlueMarketRewardsProgramRegistry is Multicall {
-    uint8 public constant MAX_PROGRAMS_WITH_SAME_ID = 30;
+/// @title MarketRewardsProgramRegistry
+/// @author Morpho Labs
+/// @custom:contact security@morpho.org
+/// @notice A registry of time-bounded market rewards programs.
+contract MarketRewardsProgramRegistry is Multicall {
+    uint256 public constant MAX_PROGRAMS_WITH_SAME_ID = 30;
 
     /// @notice Returns a set of time-bounded market rewards programs for a given id.
     /// Where id = keccak256(abi.encode(owner, urd, rewardToken, market)).
@@ -44,9 +48,9 @@ contract BlueMarketRewardsProgramRegistry is Multicall {
     /// @param market The id of market on which rewards are programmed to be distributed.
     /// @param program The time-bounded rewards program.
     function register(address urd, address rewardToken, Id market, MarketRewardsProgram calldata program) public {
-        require(program.startTimestamp >= block.timestamp, ErrorsLib.START_TIMESTAMP_OUTDATED);
+        require(program.start >= block.timestamp, ErrorsLib.START_TIMESTAMP_OUTDATED);
 
-        require(program.endTimestamp > program.startTimestamp, ErrorsLib.END_TIMESTAMP_INVALID);
+        require(program.end > program.start, ErrorsLib.END_TIMESTAMP_INVALID);
 
         bytes32 id = _id(msg.sender, urd, rewardToken, market);
 
@@ -76,15 +80,15 @@ contract BlueMarketRewardsProgramRegistry is Multicall {
     /// @notice Returns the number of time-bounded market rewards programs with the same id.
     /// Where id = keccak256(abi.encode(caller, urd, rewardToken, market)).
     /// @param id The id of the time-bounded market rewards programs.
-    function getNumberOfProgramsForId(bytes32 id) public view returns (uint8) {
-        return uint8(programs[id].length);
+    function getNumberOfProgramsForId(bytes32 id) public view returns (uint256) {
+        return programs[id].length;
     }
 
     /// @notice Computes the time-bounded market rewards program id.
     /// @param caller The caller of the `register` function.
     /// @param urd The URD that should redistribute the rewards.
     /// @param rewardToken The reward token of the program.
-    /// @param market The id of Blue market on which rewards are programmed to be distributed..
+    /// @param market The id of Blue market on which rewards are programmed to be distributed.
     function _id(address caller, address urd, address rewardToken, Id market) internal pure returns (bytes32) {
         return keccak256(abi.encode(caller, urd, rewardToken, market));
     }
