@@ -12,7 +12,7 @@ contract MarketRewardsProgramRegistryTest is Test {
 
     event ProgramRegistered(
         address indexed rewardToken,
-        Id indexed market,
+        MarketId indexed market,
         address indexed sender,
         address urd,
         MarketRewardsProgram program
@@ -28,7 +28,7 @@ contract MarketRewardsProgramRegistryTest is Test {
         _;
     }
 
-    function testRegister(address urd, Id market, address token, MarketRewardsProgram calldata program)
+    function testRegister(address urd, MarketId market, address token, MarketRewardsProgram calldata program)
         public
         assumeTimestampsAreValid(program)
     {
@@ -46,35 +46,35 @@ contract MarketRewardsProgramRegistryTest is Test {
         assertEq(program.end, registeredPrograms[0].end);
     }
 
-    function testRegisterShouldRevertWhenstartIsInThePast(MarketRewardsProgram calldata program) public {
+    function testRegisterShouldRevertWhenStartIsInThePast(MarketRewardsProgram calldata program) public {
         // The start timestamp is set in the past.
         vm.assume(program.start < block.timestamp);
         vm.assume(program.end > program.start);
 
         vm.prank(USER);
         vm.expectRevert(bytes(ErrorsLib.START_TIMESTAMP_OUTDATED));
-        registry.register(address(0), address(0), Id.wrap(bytes32(uint256(0))), program);
+        registry.register(address(0), address(0), MarketId.wrap(bytes32(uint256(0))), program);
     }
 
-    function testRegisterShouldRevertWhenendIsBeforestart(MarketRewardsProgram calldata program) public {
+    function testRegisterShouldRevertWhenEndIsBeforestart(MarketRewardsProgram calldata program) public {
         vm.assume(program.start >= block.timestamp);
         // The end timestamp is set before the start timestamp.
         vm.assume(program.end < program.start);
 
         vm.prank(USER);
         vm.expectRevert(bytes(ErrorsLib.END_TIMESTAMP_INVALID));
-        registry.register(address(0), address(0), Id.wrap(bytes32(uint256(0))), program);
+        registry.register(address(0), address(0), MarketId.wrap(bytes32(uint256(0))), program);
     }
 
     function testGetNumberOfProgramsForId() public {
-        bytes32 id = keccak256(abi.encode(USER, address(0), address(0), Id.wrap(bytes32(uint256(0)))));
+        bytes32 id = keccak256(abi.encode(USER, address(0), address(0), MarketId.wrap(bytes32(uint256(0)))));
         assertEq(registry.getNumberOfProgramsForId(id), 0);
 
         vm.prank(USER);
         registry.register(
             address(0),
             address(0),
-            Id.wrap(bytes32(uint256(0))),
+            MarketId.wrap(bytes32(uint256(0))),
             MarketRewardsProgram(1, 1, 1, block.timestamp, block.timestamp + 1)
         );
         assertEq(registry.getNumberOfProgramsForId(id), 1);
@@ -91,7 +91,7 @@ contract MarketRewardsProgramRegistryTest is Test {
                 (
                     address(0),
                     token1,
-                    Id.wrap(bytes32(uint256(1))),
+                    MarketId.wrap(bytes32(uint256(1))),
                     MarketRewardsProgram(1, 1, 1, block.timestamp, block.timestamp + 1)
                 )
             )
@@ -102,7 +102,7 @@ contract MarketRewardsProgramRegistryTest is Test {
                 (
                     address(1),
                     token2,
-                    Id.wrap(bytes32(uint256(2))),
+                    MarketId.wrap(bytes32(uint256(2))),
                     MarketRewardsProgram(2, 2, 2, block.timestamp + 1, block.timestamp + 2)
                 )
             )
@@ -113,7 +113,7 @@ contract MarketRewardsProgramRegistryTest is Test {
                 (
                     address(2),
                     token3,
-                    Id.wrap(bytes32(uint256(3))),
+                    MarketId.wrap(bytes32(uint256(3))),
                     MarketRewardsProgram(3, 3, 3, block.timestamp + 2, block.timestamp + 3)
                 )
             )
@@ -123,11 +123,11 @@ contract MarketRewardsProgramRegistryTest is Test {
         registry.multicall(data);
 
         MarketRewardsProgram memory program0 =
-            registry.getPrograms(USER, address(0), address(token1), Id.wrap(bytes32(uint256(1))))[0];
+            registry.getPrograms(USER, address(0), address(token1), MarketId.wrap(bytes32(uint256(1))))[0];
         MarketRewardsProgram memory program1 =
-            registry.getPrograms(USER, address(1), address(token2), Id.wrap(bytes32(uint256(2))))[0];
+            registry.getPrograms(USER, address(1), address(token2), MarketId.wrap(bytes32(uint256(2))))[0];
         MarketRewardsProgram memory program2 =
-            registry.getPrograms(USER, address(2), address(token3), Id.wrap(bytes32(uint256(3))))[0];
+            registry.getPrograms(USER, address(2), address(token3), MarketId.wrap(bytes32(uint256(3))))[0];
 
         assertEq(program0.supplyRewardTokensPerYear, 1);
         assertEq(program0.borrowRewardTokensPerYear, 1);
@@ -149,7 +149,7 @@ contract MarketRewardsProgramRegistryTest is Test {
     function testMulticallForSameURDSameTokenAndSameMarket() public {
         address urd = makeAddr("URD");
         address rewardToken = makeAddr("RewardToken");
-        Id market = Id.wrap(bytes32(uint256(0)));
+        MarketId market = MarketId.wrap(bytes32(uint256(0)));
 
         uint256 MAX_PROGRAMS_WITH_SAME_ID = registry.MAX_PROGRAMS_WITH_SAME_ID();
         // create maximum programs for the same URD, token and market

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.21;
 
-import {Id} from "morpho-blue/interfaces/IMorpho.sol";
+import {Id as MarketId} from "morpho-blue/interfaces/IMorpho.sol";
 import {ErrorsLib} from "./libraries/ErrorsLib.sol";
 
 import {Multicall} from "openzeppelin/utils/Multicall.sol";
@@ -36,7 +36,7 @@ contract MarketRewardsProgramRegistry is Multicall {
     /// @notice Emitted when a rewards program for a market is registered.
     event ProgramRegistered(
         address indexed rewardToken,
-        Id indexed market,
+        MarketId indexed market,
         address indexed sender,
         address urd,
         MarketRewardsProgram program
@@ -47,7 +47,9 @@ contract MarketRewardsProgramRegistry is Multicall {
     /// @param rewardToken The reward token of the program.
     /// @param market The id of market on which rewards are programmed to be distributed.
     /// @param program The time-bounded rewards program.
-    function register(address urd, address rewardToken, Id market, MarketRewardsProgram calldata program) public {
+    function register(address urd, address rewardToken, MarketId market, MarketRewardsProgram calldata program)
+        public
+    {
         require(program.start >= block.timestamp, ErrorsLib.START_TIMESTAMP_OUTDATED);
 
         require(program.end > program.start, ErrorsLib.END_TIMESTAMP_INVALID);
@@ -69,7 +71,7 @@ contract MarketRewardsProgramRegistry is Multicall {
     /// @param urd The URD that should redistribute the rewards.
     /// @param rewardToken The reward token of the program.
     /// @param market The id of Blue market on which rewards are programmed to be distributed.
-    function getPrograms(address caller, address urd, address rewardToken, Id market)
+    function getPrograms(address caller, address urd, address rewardToken, MarketId market)
         public
         view
         returns (MarketRewardsProgram[] memory)
@@ -89,7 +91,7 @@ contract MarketRewardsProgramRegistry is Multicall {
     /// @param urd The URD that should redistribute the rewards.
     /// @param rewardToken The reward token of the program.
     /// @param market The id of Blue market on which rewards are programmed to be distributed.
-    function _id(address caller, address urd, address rewardToken, Id market) internal pure returns (bytes32) {
+    function _id(address caller, address urd, address rewardToken, MarketId market) internal pure returns (bytes32) {
         return keccak256(abi.encode(caller, urd, rewardToken, market));
     }
 }

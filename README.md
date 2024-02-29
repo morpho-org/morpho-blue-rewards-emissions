@@ -9,7 +9,7 @@ The legacy `EmissionDataProvider` contract provides a streamlined method for tra
 - **Rate Setting**: Any user can set a rate for a particular rewards token and market. Rates must be linked to a Universal Rewards Distributor (URD) for the distribution of rewards.
 - **Trust Factor**: As rate setting is open to all, it's crucial for users to assess the credibility of the rate setter who is responsible for sending the rewards to the URD upon distribution.
 - **Rewards Structure**: Rates are indicative of potential rewards. The actual distribution is handled by the `UniversalRewardsDistributor` contract during each update cycle, contingent on the trustworthiness of the rewards curator.
-- **Program Structure**: The contract is designed to handle multiple rewards programs, each with its own start and end times. Once a program is registered, it is immutable and cannot be updated. Projects can set at most 30 programs per `id` with `id = keccak256(abi.encode(sender, urd, rewardToken, market))`.
+- **Program Structure**: The `MarketRewardsProgramRegistry` contract is designed to handle multiple rewards programs, each with its own start and end times. Once a program is registered, it is immutable and cannot be updated. Projects can set at most 30 programs per `id` with `id = keccak256(abi.encode(sender, urd, rewardToken, market))`.
 
 ### Rewards Program Structure
 
